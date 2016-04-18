@@ -30,7 +30,7 @@
 \begin{document}
 \begin{CJK}{UTF8}{cyberbit}
 
-\title{MCMC algorithms applications in various NLP problems}
+\title{MCMC algorithms for various NLP applications}
 \author{Xiaochang Peng}
 \thesissupervisor{Professor Daniel Gildea}
 
@@ -40,30 +40,18 @@
 
 \thispagestyle{empty}
 %\thispagestyle{plain}
-\newenvironment{dedication}
-{\cleardoublepage \thispagestyle{empty} \vspace*{\stretch{1}}
-  \begin{center} \em}
-  {\end{center} \vspace*{\stretch{3}} }
+%\newenvironment{dedication}
+%{\cleardoublepage \thispagestyle{empty} \vspace*{\stretch{1}}
+%  \begin{center} \em}
+%  {\end{center} \vspace*{\stretch{3}} }
 
 \begin{abstract}
-MCMC algorithms have been used
-This paper investigates the applications of a specific type of algorithms, MCMC algorithms, to different NLP
-problems.
-%This paper investigates properties of a type of semantic graph representation-Abstract Meaning Representation (AMR)
-%and presents different techniques to learn the mapping from natural language strings to this graph representation. While the left-to-right
-%order for sequence structure and the bottom-up order for tree structure have rendered efficient inference algorithms for both 
-%structures, parsing graph structure has been considered a much harder problem as there is no explicit order of traversal.
-%I will review several existing parsing approaches and propose 
-%new parsing strategies for parsing AMR graphs.
-%Specifically, I will propose a graph-grammar-based approach involving a grammar extraction procedure using Markov Chain Monte Carlo 
-%(MCMC) algorithm. We also extract a phrase-to-graph alignment table as a by-product.
-%Upon existing transition-based approach which greedily modifies a dependency tree to AMR graph, I
-%propose a more straight-forward transition system which
-%works directly on components identified from the phrase-to-graph table extracted and connects these smallest components 
-%using a more direct shift-reduce system.
-%I will also try to explore an innovative neural network approach
-%which works on graphs, which to my knowledge has not be covered in any previous work in NLP.
+Markov Chain Monte Carlo (MCMC) methods are a class of sampling algorithms which samples from a probability distribution based on constructing a Markov chain that has the desired distribution as its equilibrium distribution. The states of the chain after a number of steps can be used as samples of the desired distribution. 
+MCMC algorithms are widely used for calculating numerical approximations in spaces of high dimensionality, for example in Bayesian statistics, computational physics, computational biology and natural language processing (NLP).
 
+
+In this proposal, we explore some applications of MCMC algorithms to various NLP problems. First we apply MCMC algorithms to sample synchronous grammar rules, with applications of phrase-based machine translation and semantic parsing. We define a distribution over derivation tree which represents sequence of synchronous grammar rules applied to derive a language pair. We also propose a joint model which uses MCMC algorithms to sample phrases in a sentence and uses phrase-level
+skip-gram model to learn distributed representation for each phrase. Finally, we apply MCMC algorithms to learning translation models for decipherment-based machine translation where only monolingual datasets for each language are available.
 \end{abstract}
 
 \tableofcontents
