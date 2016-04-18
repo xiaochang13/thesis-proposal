@@ -1,0 +1,85 @@
+%
+% File:		urcsversions.sty
+%
+% Purpose:	Provide version indicators in side margin
+%
+% Copyright:	(c) 1988, 1989 by Johannes A G M Koomen
+%
+% Created:	Nov  2, 1988
+% Modified:	Apr 30, 1990  by Lawrence Crowl
+%
+%
+% Margin Modification - LAC
+%
+% Move the extra margin specified by urcsmargin.sty to outside edge rather
+% than the inside edge to provide room for the margin paragraphs.
+%
+\oddsidemargin 0in
+\evensidemargin 0.5in
+\marginparwidth 0.9in
+\marginparsep 0.1in
+%
+%
+% VERSION INDICATORS					    ------------.
+%								    New	|
+%									|
+% \useversions globally turns version marking on
+% \versionsoff turns it globally off
+
+\newcounter{lastversion}
+\setcounter{lastversion}{0}
+
+% Then, provided \useversions was called  and num > lastversion,
+
+% these commands:		   produce in the margin (left or right):
+% - \markversion{num}		   - a down hook
+% - \markversion[tinynote]{num}	   - a down hook with tinynote underneath it
+% - \newversion{num}		   - same as \markversion[New]{num}
+% - \modversion{num}		   - same as \markversion[Mod]{num}
+% - \endversion{num}		   - an up hook
+
+\def\useversions{\versi@nstrue}
+\def\versionsoff{\versi@nsfalse}
+
+\def\newversion#1{\markversion[New]{#1}}
+\def\modversion#1{\markversion[Mod]{#1}}
+\def\markversion{\@ifnextchar[{\versi@nmark}{\versi@nmark[]}}
+\def\endversion#1{\versi@np{#1}{\marginpar[\versi@nBL]{\versi@nBR}}}%	|
+%									|
+%							    ------------'
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\ifversi@ns \versi@nsfalse
+
+\def\versi@nmark[#1]#2{\versi@np{#2}%
+{\versi@nstartpar\marginpar[\versi@nTL{#1}]{\versi@nTR{#1}}}}
+
+\def\versi@np#1#2{\ifversi@ns\ifnum#1>\c@lastversion{#2}\fi\fi}
+
+% \versi@nstartpar forces \markversion at the beginning of a paragraph to be
+% aligned with that paragraph rather than the preceding one, and preferably at
+% the beginning of a new page.
+\def\versi@nstartpar{\pagebreak[3]\hskip0.01pt}
+
+\newdimen\versi@ndima	% height of upper horizontal bar
+\newdimen\versi@ndimb	% depth of upper horizontal bar
+\newdimen\versi@ndimc	% height of lower vertical bar
+\versi@ndima=1.5ex
+\versi@ndimb=0.4pt\advance\versi@ndimb by -\versi@ndima
+\versi@ndimc=\versi@ndima\advance\versi@ndimc by 2pt
+
+\def\versi@nTR#1{\hbox to\marginparwidth{\xleaders\hrule
+height \versi@ndima depth \versi@ndimb\hfill\llap{\tiny #1~}\vbox{\hrule
+width 0.4pt height \versi@ndima depth 2pt}}}
+
+\def\versi@nTL#1{\hbox to\marginparwidth{\vbox{\hrule
+width 0.4pt height \versi@ndima depth 2pt}\rlap{\tiny ~#1}\xleaders\hrule
+height \versi@ndima depth \versi@ndimb\hfill}}
+
+\def\versi@nBR{\hbox
+to\marginparwidth{\xleaders\hrule\hfill\vbox{\hrule width 0.4pt height
+\versi@ndimc}}}
+
+\def\versi@nBL{\hbox to\marginparwidth{\vbox{\hrule width 0.4pt height
+\versi@ndimc}\xleaders\hrule\hfill}}

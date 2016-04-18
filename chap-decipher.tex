@@ -1,0 +1,14 @@
+This chapter introduces MCMC applications to decipherment-based machine translation.
+\section{Introduction}
+\section{Decipherment-based machine translation}
+\section{Feature-based}
+Optimization function, joint probability:
+$$p(f_1,f_2) = \sum_{e_1e_2}p(f_1f_2,e_1e_2)$$
+The gradient of the joint log probability is:
+$$\frac{\partial L}{\partial w} = E_{e_1e_2|f_1f_2}[\Phi(f_1f_2,e_1e_2)] - E_{f_1f_2,e_1e_2}[\Phi(f_1f_2,e_1e_2)]$$
+\section{Reordering model}
+One problem with the previous model is that it does model reordering, which is a common phenomenon for machine translation. To model reordering, we additionally add the reordering term.
+$$\frac{\partial L}{\partial w} = E_{e_1e_2, I|f_1f_2}[\Phi(f_1f_2,e_1e_2, I)] - E_{f_1f_2,e_1e_2, I}[\Phi(f_1f_2,e_1e_2,I)]$$
+\section{Modeling sentence}
+
+\section{Conclusion}

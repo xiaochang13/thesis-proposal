@@ -1,0 +1,93 @@
+%
+%   URCS department letterhead
+%   Michael Scott
+%   updated June 2009 for move to Hajim SEAS
+%
+
+\ProvidesPackage{URCS_Hajim_letter}%
+    [2009/06/18 URCS Hajim SEAS letterhead (Michael Scott)]
+\newif\ifcolor \colorfalse
+\DeclareOption{color}{\colortrue}
+\ProcessOptions
+
+\RequirePackage{graphicx}
+
+% defaults; can safely be changed:
+\setlength{\topmargin}{-.4in}
+\setlength{\headheight}{.15in}
+\setlength{\headsep}{.25in}
+\setlength{\textheight}{9in}
+\setlength{\oddsidemargin}{0.02in}
+\setlength{\evensidemargin}{0.02in}
+\setlength{\textwidth}{6.46in}                 % 8.5 - 2*1.02
+
+% page style with page number in outside top corner
+\def\ps@pnum {%
+ \def\@oddhead{\hfil \rm\thepage}%
+ \def\@oddfoot{}%
+ \def\@evenhead{\rm \thepage\hfil}%
+ \def\@evenfoot{}}
+
+\pagestyle{pnum}
+
+\newlength{\letterheadraise}
+\newlength{\topmarginsave}
+\newlength{\lhoverlap}
+
+\newcommand{\deflhb}{%
+\newbox\letterheadbox
+\setbox\letterheadbox \hbox{%
+    \setlength{\letterheadraise}{\topmargin}%
+    \addtolength{\letterheadraise}{\headheight}%
+    \addtolength{\letterheadraise}{-9.62in}%
+        % that length was determined by trial and error
+    \makebox[\textwidth][l]{\raisebox{\letterheadraise}[0in][0in]{%
+      \ifcolor
+        \includegraphics{URCS_Hajim_letterhead_color}%
+      \else
+        \includegraphics{URCS_Hajim_letterhead}%
+      \fi}}%
+}}
+
+% page style with letterhead
+\newcommand{\ps@urcs}{%
+    \renewcommand{\@oddhead}{%
+        \deflhb\hspace*{-\oddsidemargin}%
+        \leavevmode\box\letterheadbox\hfil}
+    \renewcommand{\@evenhead}{\@oddhead}
+    \renewcommand{\@oddfoot}{%
+        \global\topmargin\topmarginsave}
+    \renewcommand{\@evenfoot}{\@oddfoot}}
+
+\newcommand{\URCSletterhead}{%
+  % adjust the top margin:
+    \global\topmarginsave\topmargin
+    \setlength{\lhoverlap}{.4in}%
+        % that's the margin I need to comfortably clear the header
+    \addtolength{\lhoverlap}{-\topmargin}%
+    \addtolength{\lhoverlap}{-\headheight}%
+    \addtolength{\lhoverlap}{-\headsep}%
+        % those values adjust for how far LaTeX will space down anyway
+    \ifnum\lhoverlap>\z@
+        \addtolength{\topmargin}{\lhoverlap}%
+        \enlargethispage{-\lhoverlap}%
+    \fi
+  % adjust the bottom margin:
+    \setlength{\lhoverlap}{9in}%
+        % that's the length I need to comfortably clear the footer
+    \addtolength{\lhoverlap}{-\textheight}%    (*new* textheight)
+    \ifnum\lhoverlap<\z@
+        \enlargethispage{\lhoverlap}%
+    \fi
+    \thispagestyle{urcs}}
+
+% fix spacing; don't re-define page style:
+\def\opening#1{%
+    \vspace*{-\baselineskip}%
+    \vspace*{-.3in}%
+    {\raggedright\@date\par}%
+    \ifx\toname\@empty\else
+        {\raggedright \toname \\ \toaddress \par}%
+        \vspace{2\parskip}%
+    \fi
+    #1\par\nobreak}

@@ -1,0 +1,36 @@
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Geman and Geman(1984)}]{geman1984stochastic}
+Geman, Stuart and Donald Geman. 1984.
+\newblock Stochastic relaxation, gibbs distributions, and the bayesian
+  restoration of images.
+\newblock \emph{Pattern Analysis and Machine Intelligence, IEEE Transactions
+  on}, (6):721--741.
+
+\bibitem[{Hastings(1970)}]{hastings1970monte}
+Hastings, W~Keith. 1970.
+\newblock Monte carlo sampling methods using markov chains and their
+  applications.
+\newblock \emph{Biometrika}, 57(1):97--109.
+
+\bibitem[{Metropolis and Ulam(1949)}]{metropolis1949monte}
+Metropolis, Nicholas and Stanislaw Ulam. 1949.
+\newblock The monte carlo method.
+\newblock \emph{Journal of the American statistical association},
+  44(247):335--341.
+
+\bibitem[{Mitchell and Lapata(2008)}]{Mitchell08vector-basedmodels}
+Mitchell, Jeff and Mirella Lapata. 2008.
+\newblock Vector-based models of semantic composition.
+\newblock In \emph{In Proceedings of ACL-08: HLT}, pages 236--244.
+
+\bibitem[{Yu et~al.(2013)Yu, Huang, Mi, and Zhao}]{yu-EtAl:2013:EMNLP}
+Yu, Heng, Liang Huang, Haitao Mi, and Kai Zhao. 2013.
+\newblock Max-violation perceptron and forced decoding for scalable {MT}
+  training.
+\newblock In \emph{Proceedings of the 2013 Conference on Empirical Methods in
+  Natural Language Processing}, pages 1112--1123. Association for Computational
+  Linguistics, Seattle, Washington, USA.
+
+\end{thebibliography}

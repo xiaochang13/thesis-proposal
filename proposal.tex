@@ -1,0 +1,122 @@
+\documentclass[12pt,leqno]{report}
+%\usepackage{setspace}
+%\singlespace
+%\usepackage[protrusion=true, expansion=true]{microtype}
+%\usepackage[protrusion=true]{microtype}
+
+\sloppy
+
+\input{header}
+
+\definecolor{rblue}{RGB}{0,70,127}
+\definecolor{dyellow}{RGB}{255,221,0}
+\definecolor{uorange}{RGB}{248,151,26}
+\definecolor{coolgray}{RGB}{215,217,218}
+\definecolor{darkgreen}{RGB}{88,123,124}
+\definecolor{ured}{RGB}{239,51,34}
+
+\psset{levelsep=2.5em,treesep=0pt,treefit=tight}
+\psset{arrowscale=2}
+
+%\newtheorem{theorem}{Theorem}
+
+\pdfinfo{
+/Title (MCMC algorithms applications in various NLP problems)
+/Author (Xiaochang Peng)
+/Keywords (Thesis proposal, semantic parsing, decipherment-based machine translation, distributed representation, neural machine translation, natural language processing)
+}
+
+%\thesisproposal
+\begin{document}
+\begin{CJK}{UTF8}{cyberbit}
+
+\title{MCMC algorithms applications in various NLP problems}
+\author{Xiaochang Peng}
+\thesissupervisor{Professor Daniel Gildea}
+
+%\date{July, 2012}
+
+\maketitle
+
+\thispagestyle{empty}
+%\thispagestyle{plain}
+\newenvironment{dedication}
+{\cleardoublepage \thispagestyle{empty} \vspace*{\stretch{1}}
+  \begin{center} \em}
+  {\end{center} \vspace*{\stretch{3}} }
+
+\begin{abstract}
+MCMC algorithms have been used
+This paper investigates the applications of a specific type of algorithms, MCMC algorithms, to different NLP
+problems.
+%This paper investigates properties of a type of semantic graph representation-Abstract Meaning Representation (AMR)
+%and presents different techniques to learn the mapping from natural language strings to this graph representation. While the left-to-right
+%order for sequence structure and the bottom-up order for tree structure have rendered efficient inference algorithms for both 
+%structures, parsing graph structure has been considered a much harder problem as there is no explicit order of traversal.
+%I will review several existing parsing approaches and propose 
+%new parsing strategies for parsing AMR graphs.
+%Specifically, I will propose a graph-grammar-based approach involving a grammar extraction procedure using Markov Chain Monte Carlo 
+%(MCMC) algorithm. We also extract a phrase-to-graph alignment table as a by-product.
+%Upon existing transition-based approach which greedily modifies a dependency tree to AMR graph, I
+%propose a more straight-forward transition system which
+%works directly on components identified from the phrase-to-graph table extracted and connects these smallest components 
+%using a more direct shift-reduce system.
+%I will also try to explore an innovative neural network approach
+%which works on graphs, which to my knowledge has not be covered in any previous work in NLP.
+
+\end{abstract}
+
+\tableofcontents
+%\listoftables
+%\listoffigures
+
+\chapter{Introduction}
+\input{chap-intro}
+For a lot of probabilistic models for NLP applications, doing exact inference is often intractable. Therefore, approximation methods have to be used to overcome the
+complexity issue. Sampling methods, or known as Monte Carlo methods, are widely used to do approximate inference. The basic idea is to use a certain number of
+samples from the desired distribution to approximate the exact inference.
+
+
+Some widely used sampling methods, such as rejection sampling and importance sampling, suffer from severe limitations of high dimensional spaces. Markov Chain Monte Carlo (MCMC)
+algorithms, on the other hand, allows for sampling from a large class of distributions and scales well to high dimensional spaces. MCMC methods have their origins in physics~\cite{metropolis1949monte} and later start to have
+their uses in other fields of statistics.
+
+
+MCMC algorithms have also been widely used in NLP such as word segmentation, grammar induction et al. One widely used 
+\break
+
+\chapter{MCMC algorithms}
+\label{chap:MCMC}
+\input{chap-MCMC}
+\break
+
+\chapter{AMR parsing}
+\label{chap:amr}
+\input{chap-amr}
+\break
+
+\chapter{Decipherment-based machine translation}
+\label{chap:decipher}
+\input{chap-decipher}
+\break
+
+\chapter{Distributed representation learning}
+\label{chap:embedding}
+\input{chap-embedding}
+\break
+
+\chapter{Neural machine translation}
+\label{chap:nmt}
+\input{chap-nmt}
+\break
+\chapter{Conclusion}
+\label{chap:conclusion}
+In this paper, I have proposed various applications of MCMC algorithms.
+\break
+
+\bibliographystyle{urcsbiblio}
+\bibliography{long}
+\appendix
+\end{CJK}
+
+\end{document}

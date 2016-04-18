@@ -1,0 +1,62 @@
+% File:         draftheader.sty
+%
+% Purpose:      Provide header proclaiming 'DRAFT [-- title] -- mm/dd/yy hh:mm'
+%
+% Copyright:    (c) 1988, 1989 by Johannes A G M Koomen
+%
+% Created:      Nov  2, 1988
+% Modified:     Nov 16, 1989
+% seagull: 31 May 2000: y2k fix (actually yNk)
+%
+
+% Call:                 to get on top of each page:
+% \draftheader          'DRAFT  --  mm/dd/yy hh:mm'
+% \draftheader[title]   'DRAFT  --  title  --  mm/dd/yy hh:mm'
+
+% Also provides new if: \ifdraft
+%       Initially \draftfalse
+%       \draftheader calls \drafttrue
+
+% \draftheader also redefines plain page to put DRAFT on left header,
+% page numbers on right
+
+% Has no effect until '\draftheader' is invoked
+
+\def\draftheader{\@ifnextchar[{\mkdr@ftheader}{\mkdr@ftheader[]}}
+
+\newif\ifdraft\draftfalse
+\newbox\dr@ftheader
+\def\mkdr@ftheader[#1]{
+ \drafttrue
+ \setbox\dr@ftheader=\hbox{\small\sf #1}
+ \setbox\dr@ftheader=\hbox{\small\sf
+DRAFT\ifdim \wd\dr@ftheader>\z@~~---~~\box\dr@ftheader\fi~~---~~\dr@ftdate}
+ \def\ps@plain{\let\@mkboth\@gobbletwo
+ \def\@oddhead{\copy\dr@ftheader\hfil{\sf\thepage}}\def\@oddfoot{}%
+ \def\@evenhead{\@oddhead}\def\@evenfoot{}}
+ \pagestyle{plain}
+ \ifdim \headheight =\z@                % make room for draftheader
+    \headheight 12pt\advance\topmargin by -\headheight
+    \headsep 24pt\advance\topmargin by -\headsep
+ \fi
+}
+
+% seagull: 31 May 2000: y2k fix (actually yNk)
+\newcount\dr@fthrs \newcount\dr@ftmins% \newcount\dr@ftyear
+\dr@fthrs=\time \divide\dr@fthrs 60
+\dr@ftmins=-\dr@fthrs \multiply\dr@ftmins 60 \advance\dr@ftmins \time
+% seagull: 31 May 2000: y2k fix (actually yNk)
+%\dr@ftyear=\year \advance\dr@ftyear -1900
+
+% seagull: 31 May 2000: y2k fix (actually yNk)
+% \def\tw@digits#1{\ifnum #1<10 0\fi \number#1}
+% tw@digits now does %100 before making 2 digit 0-padded string
+\def\tw@digits#1{\count0=#1\count1=#1%
+  \divide\count1 by 100
+  \multiply\count1 by 100
+  \advance\count0 by-\count1
+  \ifnum \count0<10 0\fi \number\count0}
+% seagull: 31 May 2000: y2k fix (actually yNk)
+% \def\dr@ftdate{\tw@digits\month/\tw@digits\day/\tw@digits\dr@ftyear%
+\def\dr@ftdate{\tw@digits\month/\tw@digits\day/\tw@digits\year%
+\space\space\tw@digits\dr@fthrs:\tw@digits\dr@ftmins}

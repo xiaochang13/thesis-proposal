@@ -1,0 +1,141 @@
+\usepackage{urcsbiblio,urcsthesis}
+\usepackage{url}
+\usepackage{latexsym}
+\usepackage{amsmath}
+%\usepackage{algpseudocode}
+\usepackage{graphicx}
+%\usepackage[dvips]{graphicx}
+\usepackage{multirow}
+\usepackage[utf8]{inputenc}
+\usepackage[encapsulated]{CJK}
+\usepackage{pst-all}
+\usepackage{color}
+\usepackage{psfrag}
+%\usepackage{pst-qtree}
+\usepackage{pstricks}
+\usepackage{pstricks-add}
+\usepackage{amsmath,bm}
+\usepackage{array}
+%\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{subcaption}
+%\usepackage{picins}
+%\usepackage{algorithm}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes, arrows}
+\tikzset{
+    events/.style={ellipse, draw, align=center},
+}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{multirow}
+%\usepackage{pst-node,pst-tree,pst-coil,avm}
+%\input{pst-qtree}
+%\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+%\renewcommand{\algorithmicensure}{\textbf{Output:}}
+%\setlength\titlebox{6.5cm}    % Expanding the titlebox
+%\usepackage{pst-node,pst-tree,pst-coil,pst-qtree}
+\usepackage{times}
+\usepackage{rotating} % CTAN/macros/latex/contrib/supported/rotating
+
+\usepackage{enumerate}
+%\usepackage{mathpazo}
+%\usepackage{pst-qtree}
+\psset{levelsep=2.5em,treesep=0pt,treefit=tight}
+\usepackage{amsmath,amssymb}
+%\usepackage{picins}
+\newcommand{\boxnum}[1]{{\setlength{\fboxsep}{1pt}\raisebox{1pt}
+{\hspace{1pt}\fbox{\tiny{\ensuremath{#1}}}\hspace{1pt}}}}
+\newcommand{\ind}[1]{\ensuremath{^{\kern-0.5pt\boxnum{#1}}}}
+
+\def\de{\rightarrow}
+\def\la{\langle}
+\def\ra{\rangle}
+\def\state#1{\underbar{\textit{#1}}}
+
+% for inside/outside sets
+\def\ins#1{\mathrm{in}({#1})}
+\def\out#1{\overline{\mathrm{in}}({#1})}
+
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+%\usepackage[noend]{algorithmic}
+%\usepackage[noend]{algpseudocode}
+
+%\usepackage{setspace}
+%\singlespace
+%\usepackage[protrusion=true, expansion=true]{microtype}
+%\usepackage[protrusion=true]{microtype}
+
+\newcommand{\bigO}{{\cal O}}
+\newcommand{\G}{{\cal G}}
+\newcommand{\T}{{\cal T}}
+\newcommand{\sub}{{\mathrm{sub}}}
+\newcommand{\upsub}{{\mathrm{\overline{sub}}}}
+\newcommand{\downsub}{{\mathrm{\underline{sub}}}}
+
+\newcommand{\dottededge}{\ncdiag[arm=0,angleA=-90,angleB=90,linestyle=dotted]}
+\newcommand{\blankedge}{\ncdiag[arm=0,angleA=-90,angleB=90,linestyle=none]}
+\newcommand{\arrowedge}{\ncdiag[arm=0,angleA=-90,angleB=90,arrows=->]}
+\newcommand{\blueedge}{\ncdiag[arm=0,angleA=-90,angleB=90,linecolor=blue]}
+
+\newcommand{\mycircle}{\hspace{4pt}\raisebox{4pt}{\circle{6}}}
+\newcommand{\myblackcircle}{\hspace{4pt}\raisebox{4pt}{\circle*{6}}}
+%\DeclareMathOperator*{\argmax}{argmax}
+%\DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\providecommand{\abs}[1]{\lvert#1\rvert}
+\providecommand{\norm}[1]{\lVert#1\rVert}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}{Definition}
+
+% for inside/outside sets
+\def\ins#1{\mathrm{in}({#1})}
+\def\out#1{\overline{\mathrm{in}}({#1})}
+
+\usepackage{rotating} % CTAN/macros/latex/contrib/supported/rotating
+
+\definecolor{LemonChiffon}{rgb}{1.,0.98,0.8}
+\definecolor{PaleGreen}   {rgb}{0.88,1,0.88}
+\definecolor{Pink}        {rgb}{1.,0.75,0.8}
+\definecolor{Thistle}     {rgb}{0.85,0.75,0.85}
+
+\newenvironment{proof}[1][Proof]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+\newcommand{\qed}{\nobreak \ifvmode \relax \else
+      \ifdim\lastskip<1.5em \hskip-\lastskip
+            \hskip1.5em plus0em minus0.5em \fi \nobreak
+                  \vrule height0.75em width0.5em depth0.25em\fi}
+
+
+%\usepackage{ucs}
+%\usepackage[T1]{fontenc}
+
+
+\newcommand{\cntext}[1]{\begin{CJK}{UTF8}{cyberbit}#1\end{CJK}}
+%\newcommand{\cntext}[1]{\begin{CJK}{UTF8}{cyberbit} {\fontspec{STSong}#1} \end{CJK}}
+\newcommand{\pycntext}[2]{\begin{tabular}{c}#1\\\cntext{#2}\end{tabular}}
+
+%\usepackage{acl-hlt2011}
+
+
+%\setlength\titlebox{6.5cm}    % Expanding the titlebox
+
+%\def\namecite{\newcite}
+
+\usepackage{xspace}
+\newcommand{\goesto}{\ensuremath{\rightarrow}\xspace}
+
+
+
+%\thesisproposal
+

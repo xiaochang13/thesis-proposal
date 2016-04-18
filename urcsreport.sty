@@ -1,0 +1,41 @@
+%
+% urcsreport
+%
+% author: Lawrence A. Crowl
+%
+% Modified: Dan Gildea
+%           May 2, 2006
+%	    natbib compatibility
+%
+\typeout{Document Style `urcsreport' <2 May 2006>.}
+%
+% set margins
+%
+\input{urcsmargin.sty}
+%
+% get UR macros
+%
+\input{urcsmacros}
+%
+% title page macros
+%
+\input{urcstitlepage.sty}
+%
+% month year date format
+%
+\dateMY
+% 
+% define end of page handling 
+% 
+\def\@finishtitlepage{\newpage\setcounter{page}{1}} 
+%
+% only count two sections deep
+%
+\setcounter{secnumdepth}{2}
+%
+% \clearpage added to start of appendicies
+%
+\def\appendix{\clearpage\par
+  \setcounter{section}{0}
+  \setcounter{subsection}{0}
+  \def\thesection{\Alph{section}}}

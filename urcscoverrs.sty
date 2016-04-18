@@ -1,0 +1,61 @@
+%
+% urcscoverrs
+%
+% author: Lawrence A. Crowl
+\typeout{Document Style `urcscoverrs' <10 August 1988>.}
+%
+% set margins
+%
+\oddsidemargin=0in
+\evensidemargin=0in
+\textwidth=6.5in
+\marginparsep=0in
+\marginparwidth=0in
+%
+\topmargin=0in
+\headheight=0in
+\headsep=0in
+\textheight=9in
+\footskip=0in
+% gf: 11 Sep 1997: footheight doesn't exist in LaTeX2e or compatibility mode
+%\footheight=0in
+%
+% get UR macros
+%
+\input{urcsmacros}
+%
+% month year date format
+%
+\dateMY
+%
+% get URCS logo
+%
+\input{urcslogo}
+%
+% rsvolume
+%
+\def\rsvolume#1{\gdef\@rsvolume{#1}}
+\def\@rsvolume{DRAFT}
+%
+% rsnumber
+%
+\def\rsnumber#1{\gdef\@rsnumber{#1}}
+\def\@rsnumber{DRAFT}
+%
+% define makecover to use the empty page style
+%   and to box the information appropriately
+%
+\def\makecover{\newpage
+ \thispagestyle{empty}        % So we get no page number on the title page
+ \null
+ \centering
+ \hbox to \textwidth{
+   \hbox{{\Huge\bf Student Research}}
+   \hfill
+   \vbox{
+     \hbox to 2.5in{\hfill{\Large\bf Volume \@rsvolume, Number \@rsnumber}}
+     \hbox to 2.5in{\hfill{\Large\bf \@date}}}}
+ \vfill
+ \centerline{\urcslogo}
+ \newpage
+}

@@ -1,0 +1,95 @@
+%
+% urcstitlepage
+%
+% author: Lawrence A. Crowl
+% last modified: 28 April 1988
+%
+% Modified: Dan Gildea
+%           May 2, 2006
+%	    replace \TR with \URCSTR to avoid conflict with pstricks package
+%
+
+% funding
+%
+% the \thanks macro without footnote symbols
+\def\funding#1{\gdef\@funding{#1}}
+\def\@funding{The University of Rochester Computer Science Department
+supported this work.}
+\def\@outfunding{
+\begingroup
+  \def\protect{\noexpand\protect\noexpand}
+  \xdef\@thanks{\@thanks\protect\footnotetext[\the\c@footnote]{\@funding}}
+\endgroup}
+%
+% techrepdept
+%
+\def\techrepdept#1{\gdef\@techrepdept{#1}}
+\def\@techrepdept{The University of Rochester\\
+Computer Science Department\\
+Rochester, NY 14627}
+%
+% techrepname
+%
+\def\techrepname#1{\gdef\@techrepname{#1}}
+\def\@techrepname{Technical Report}
+%
+% techrepnum
+%
+\def\techrepnum#1{\gdef\@techrepnum{#1}}
+\def\@techrepnum{DRAFT}
+%
+% TR, BPR, and GUIDE
+%
+\def\URCSTR#1{\techrepname{Technical Report}\techrepnum{#1}}
+\def\URCSBPR#1{\techrepname{Butterfly Project Report}\techrepnum{#1}}
+\def\URCSGUIDE#1{\techrepname{Departmental Guide}\techrepnum{#1}}
+%
+% maketitle
+%
+\def\maketitle{
+ \newpage
+ \global\@topnum\z@            % prevents figures from going at top of page
+ \thispagestyle{empty}         % so we get no page number on the title page
+ \begingroup
+   % redefine \@makefnmark so footnote marks take zero space
+   % (this make centering look better)
+   \def\thefootnote{\fnsymbol{footnote}}
+   \def\@makefnmark{\hbox to 0pt{$^{\@thefnmark}$\hss}}
+   \null
+   \vfil                         % vertical space above title
+   \begin{center}
+     \@outfunding
+     \setcounter{footnote}{0}
+     {\LARGE \@title \par}       % title set in \LARGE size
+     \vskip 1.2em                % vertical space after title
+     {\large                     % each author set in \large, in a
+       \lineskip .5em            % tabular environment
+       \begin{tabular}[t]{c}\@author
+       \end{tabular}\par}
+     \vskip 0.8em                % vertical space after author
+     {\large \@techrepdept}      % technical report department
+     \vskip 0.8em                % vertical space after department
+     {\large \@techrepname\ \@techrepnum}       % technical report and number
+     \vskip 0.8em                % vertical space after report number
+     {\large \@date}             % date set in \large size
+   \end{center}
+   \@thanks
+   \par
+ \endgroup
+ % reset footnote counter
+ \setcounter{footnote}{0}
+ % clean up title page macros
+ \let\maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}
+ \gdef\@funding{}\gdef\@techrepdept{}\gdef\@techrepname{}\gdef\@techrepnum{}
+ \let\thanks\relax}
+%
+% abstract environment
+%
+\renewenvironment{abstract}%
+{\vfil\begin{center}{\bf Abstract}\end{center}}%
+{\vfil\@finishtitlepage}
+%
+% in case there is no abstract
+%
+\newcommand{\noabstract}{\vfil\@finishtitlepage}
