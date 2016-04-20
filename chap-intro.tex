@@ -1,5 +1,25 @@
-MCMC algorithms is useful in reducing the search space.
+For a lot of probabilistic models for NLP applications, doing exact inference is often intractable. Therefore, approximation methods have to be used to overcome the
+complexity issue. Sampling methods, or known as Monte Carlo methods, are widely used to do approximate inference. The basic idea is to use a certain number of
+samples from the desired distribution to approximate the exact inference.
 
 
-The rest of the paper is structured as follows. In Chapter 2, I will discuss the MCMC algorithms in general. Chapter 3-6 will separately introduce the application of MCMC algorithms to 
-semantic parsing, decipherment-based machine translation, distributed representation learning and neural machine translation. In Chapter 7, I conclude the proposal paper.
+Some widely used sampling methods, such as rejection sampling and importance sampling, suffer from severe limitations of high dimensional variable spaces. Markov Chain Monte Carlo (MCMC)
+algorithms, on the other hand, allows for sampling from a large class of distributions and scales well to high dimensional spaces. MCMC methods have their origins in physics~\cite{metropolis1949monte} and later start to have
+their uses in other fields of statistics.
+
+
+Most of NLP problems can be formalized as some kind of structured learning problems, either sequence, tree or graph structures.
+In previous works, sampling methods have been used in various NLP applications such as POS tagging~\cite{finkel2005incorporating}, topic modeling~\cite{wallach2006topic,steyvers2007probabilistic}, grammar induction~\cite{cohn-2009-inducing,PostGildea-acl09} and machine translation~\cite{denero2008sampling}. 
+Usually, solving these problems either involves a joint distribution over a large number of variables or the desired distribution
+or we need to compute some expectation terms which involves suming over a large vocabulary.
+MCMC algorithms provides powerful toolsets to solve these problems with relatively small computational cost.
+
+
+In this proposal, we further explore applications of MCMC algorithms to various NLP problems.
+First we apply MCMC algorithms to sample synchronous grammar rules, with applications of phrase-based machine translation and semantic parsing. We define a distribution over derivation trees which represent a sequence of synchronous grammar rules applied to derive a language pair. We also propose a joint model which uses MCMC algorithms to sample phrases in a sentence and uses phrase-level
+skip-gram model to learn a distributed representation for each phrase. Finally, we apply MCMC algorithms to learning translation models for decipherment-based machine translation where only monolingual datasets for each language are available.
+
+
+The rest of the paper is structured as follows. In Chapter 2, I will discuss the MCMC algorithms in general and show some widely used MCMC algorithms. In Chapter 3-5 I will separately introduce the application of MCMC algorithms to 
+AMR graph parsing, decipherment-based machine translation and distributed representation learning for phrases. At the end of each Chapter, I will also explore different techniques and directions that
+could be possible solutions or ways of improvement for each NLP task. In Chapter 6, I will conclude the proposal paper.
