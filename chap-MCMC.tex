@@ -1,10 +1,25 @@
-In this chapter, I mainly go over MCMC algorithms and review some properties of MCMC.
-\section{Introduction}
+Markov Chain Monte Carlo (MCMC) algorithms are a class of sampling algorithms which samples from a probability distribution where directly sampling
+from the original distribution is intractable. 
+In this chapter, I mainly go through some theoretical properties of MCMC and the required conditions for convergence.
+Then I will introduce some widely used MCMC algorithms and their possible usage scenario. Finally I will summarize the applications of such algorithms to 
+some general cases of NLP problems.
 \section{MCMC}
+MCMC algorithms involves constructing a Markov chain that has the desired distribution as its equilibrium distribution.
+Usually we start from some initial state and make transitions to the next state by sampling from a proposal distribution $q(z|z^{(\tau)})$ which depends on
+the current state and the sequence of samples $z^{(1)}, z^{(2)}, \cdots, z^{(M)}$ form the Markov chain.
+The basic motivation of MCMC algorithms is that after a certain $M$ steps the distribution of the states on the Markov chain will converge to
+the desired distribution and we can use the states from then, $z^{(M)}, z^{(M+1)}, \cdots$ as samples of the desired distribution.
+
+
+First we review some properties that are sufficient for MCMC algorithms to converge to the desired distribution. Then we introduce two widely used MCMC algorithms: Metropolis Hastings and Gibbs sampling algorithm, which we will use 
+in our proposed models for solving NLP problems.
 \subsection{Convergence property}
-A first order Markov chain is defined as a series of states (assignments) of random variables $z^{(1)},\cdots,z^{(M)}$ such that the following conditional independence property holds for $m \in {1,\cdots,M-1}$:
+We start with the definition of the Markov chain.
+Suppose we want to sample from the a probability distribution $p({\bf z})$ where {\bf z} is a set of random variables.
+A {\it state} in a Markov chain is an assignment to these random variables.
+A first order Markov chain is defined as a series of states (assignments) of random variables ${\bf z^{(1)}},\cdots,{\bf z^{(M)}}$ such that the following conditional independence property holds for $m \in {1,\cdots,M-1}$:
 $$p({\bf z}^{(m+1)}|{\bf z}^{(1)}, \cdots, {\bf z}^{(m)})=p({\bf z}^{(m+1)}|{\bf z}^{(m)})$$
-We define {\it transition probabilities} $T({\bf z}^{(m)},{\bf z}^{(m+1)})\equiv p({\bf z}^{(m+1)}|{\bf z}^{(m)})$. A ${\it homogeneous}$ Markov chain is one that
+We also define {\it transition probabilities} $T({\bf z}^{(m)},{\bf z}^{(m+1)})\triangleq p({\bf z}^{(m+1)}|{\bf z}^{(m)})$. A ${\it homogeneous}$ Markov chain is one that
 the transition probabilities are the same for all $m$.
 
 
@@ -12,56 +27,65 @@ The marginal probability for a state at the $m+1$-th position can be expressed i
 $$p({\bf z}^{(m+1)})=\sum_{p({\bf z}^{(m)})} T({\bf z}^{(m+1)}|{\bf z}^{(m)})p({\bf z}^{(m)})$$
 
 A distribution is {\bf stationary} with respect to a Markov chain if each step in the chain leaves the distribution invariant. For a homogeneous Markov chain 
-with transition probabilities $T(z',z)$, the distribution $p(z)$ is invariant if
+with transition probabilities $T(z',z)$, the distribution $p(z)$ is stationary if
 $$p({\bf z}) = \sum_{{\bf z'}}T({\bf z'}, {\bf z})p({\bf z'})$$
 
 One sufficient (but not necessary) condition for ensuring the required distribution $p(z)$ to be stationary is to choose the transition probabilities to satisfy the property
-of {\it detailed balance}, defined by
+of {\it detailed balance}, which is defined as:
 $$T({\bf z}, {\bf z'})p({\bf z}) = T({\bf z'}, {\bf z})p({\bf z'})$$
-With detailed balance satisfied, then the distribution is stationary:
+Whenever detailed balance satisfied, the distribution is stationary:
 $$\sum_{{\bf z'}}T({\bf z'}, {\bf z})p({\bf z'}) = \sum_{{\bf z'}}T({\bf z}, {\bf z'})p({\bf z}) = p({\bf z})$$
 
-Our goal is to use Markov chains to sample from a given distribution. We can achieve this if we set up a Markov chain such that the desired distribution is invariant. However, we must also require that for $m \rightarrow \infty$, the distribution $p({\bf z}^{(m)})$ converges to the required invariant distribution $p({\bf z})$, irrespective of the choice of initial distribution $p({\bf z}^{(0)})$. This property is called {\it ergodicity}, and the stationary distribution is then called the {\it equilibrium} distribution.
+Our goal is to use Markov chains to sample from a desired distribution, usually not easy to be directly sampled from. We can achieve this if we set up a Markov chain such that the desired distribution is stationary. However, as we can not 
+sample from the desired distribution, we usually start with a initial state that is not according to this distribution.
+But we expect that for $m \rightarrow \infty$, the distribution $p({\bf z}^{(m)})$ would converge to the desired stationary distribution $p({\bf z})$, irrespective of the choice of initial distribution $p({\bf z}^{(0)})$. This property is called {\it ergodicity}, and the stationary distribution is then called the {\it equilibrium} distribution.
 
 
 A Markov chain is {\it irreducible} if for $\forall a, b\in \Pi$, $\Pi$ is the value space for ${\bf z}$, $\exists m\geq 0$, s.t. $p({\bf z}^{(m)}=b|{\bf z}^{(0)}=a)>0$. That is, any state in the value space can be reached within
-finite numbers of steps from any starting state. An irreducible Markov chain is {\it aperiodic} if $\forall a \in \Phi$, {\it gcd}\{$m:p({\bf z}^{(m)}=a|{\bf z}^{(0)}=a)>0$\} = 1. Where {\it gcd} is the greatest common divisor of a series of numbers.
-Based on these definitions, we can define the ergodic theorem.
+finite numbers of steps from any starting state. An irreducible Markov chain is {\it aperiodic} if for $\forall a \in \Pi$, {\it gcd}\{$m:p({\bf z}^{(m)}=a|{\bf z}^{(0)}=a)>0$\} = 1, where {\it gcd} is the greatest common divisor of a series of numbers.
+
+
+Based on the above definitions, we define the ergodic theorem.
 \begin{theorem}
 If $({\bf z}^{(0)},{\bf z}^{(1)},\cdots,{\bf z}^{(n)})$ is an irreducible (homogeneous) discrete Markov Chain with a stationary
 distribution $p^{*}({\bf z})$, then: 
-$$\frac{1}{n}\sum_{i=1}^{n}f({\bf z}^{(i)}) \xrightarrow[n\rightarrow \infty]{} Ef({\bf z})$$ 
+$$\frac{1}{n}\sum_{i=1}^{n}f({\bf z}^{(i)}) \xrightarrow[n\rightarrow \infty]{} \mathbb{E}({\bf z})$$ 
 where ${\bf z}~ p^{*}({\bf z})$,
 for any bounded function $f:z\rightarrow \mathbb{R}$ 
 If further, it is aperiodic, then $p({\bf z}^{(n)}|{\bf z}^{(0)})\xrightarrow[n\rightarrow \infty]{} p^{*}({\bf z})$
 \end{theorem}
-Ergodic theorem can be used to define Markov chains that regardless of which state we start from, the distribution of the states will converge to the equilibrium distribution after
-a number of steps.
+Using Ergodic theorem, we can define Markov chains that regardless of which state we start from, the distribution of the states will converge to the equilibrium distribution after
+a number of steps and we can use those states as samples from the desired distribution.
 
 \section{Types of MCMC algorithms}
+In this section, we mainly introduce two widely used MCMC algorithms: Metropolis-Hastings algorithm and Gibbs sampling algorithm.
 \subsection{Metropolis-Hastings algorithm}
 The Metropolis-Hastings algorithm was first introduced by \namecite{hastings1970monte}, which applies to cases where the proposal distribution is not symmetric.
-Assume the current hidden state at time $t$ to be ${\bf z^{(t)}}$, we then draw a sample ${\bf z^{*}}$ from the distribution $q({\bf z}| {\bf z^{(t)}})$ and accept it with the following probability:
+Assume the current state at time $t$ to be ${\bf z^{(t)}}$, we then draw a sample ${\bf z^{*}}$ from the proposal distribution $q({\bf z}| {\bf z^{(t)}})$ and accept it with the following probability:
 $$A({\bf z^{*}}, {\bf z^{(t)}})= \min \Big(1, \frac{\tilde{p}({\bf z^{*}})q({\bf z^{(t)}}| {\bf z^{*}})}{\tilde{p}({\bf z^{(t)}})q({\bf z^{*}}| {\bf z^{(t)}})}\Big)$$
 Evaluating the acceptance rate does not require knowledge about the normalization constant $Z_p$ in the distribution $p({\bf z})=\frac{\tilde{p}({\bf z})}{Z_p}$. $p({\bf z})$ is a stationary distribution with respect
-to the Markov chain. We can verify it with proving detailed balance:
+to the Markov chain. We can verify it by proving detailed balance:
 \begin{equation}
 \begin{split}
     p({\bf z}) q({\bf z}|{\bf z'}) A({\bf z'}, {\bf z}) &= \min (p({\bf z})q({\bf z}|{\bf z'}),p({\bf z'})q({\bf z'}|{\bf z})) \\ &= \min (p({\bf z'})q({\bf z'}|{\bf z}), p({\bf z})q({\bf z}|{\bf z'})) \\ &= p({\bf z'}) q({\bf z'}|{\bf z}) A({\bf z}, {\bf z'})
 \end{split}
 \end{equation}
-For Metropolis-Hastings algorithms the specific choice of proposal distribution has a great effect on the performance. For continuous variable spaces, a common choice is usually a Gaussian centered on
-the current state. And the choice of variance parameter would balance between acceptance rate and the convergence speed.
+When using Metropolis-Hastings algorithms to solve specific problems, the choice of proposal distribution has a great impact on the performance. 
+Usually the proposal distribution should be easy to sample from and be close the desired distribution. For continuous variable spaces, a common choice is usually a Gaussian centered on
+the current state. And the choice of the variance parameter would balance the trade off between acceptance rate and the convergence speed.
+
+
+We can also make independence assumption on the proposal distribution. That is, the sample ${\bf z^{*}}$ does not depend on the current state ${\bf z^{(t)}}$ and $q({\bf z}| {\bf z^{(t)}}) = q({\bf z})$. We call this variation as Independent Metropolis Hastings (IMH).
 \subsection{Gibbs Sampling}
-Gibbs sampling~\cite{geman1984stochastic} is another widely used MCMC algorithm, which can be seen as a special case of the Metropolis-Hastings algorithm. 
+Gibbs sampling~\cite{geman1984stochastic} is another widely used MCMC algorithm, which can be seen as a special case of the Metropolis-Hastings algorithm where the sampled new states are always accepted. 
 
 
 Consider we wish to sample from the distribution $p({\bf z})=p(z_1,\cdots ,z_M)$ and we start from an initial state. Each step of the Gibbs sampling algorithm involves replacing the value of one of the variables 
-by a value drawn from the distribution of that variable conditioned on the values of the remaining variables. In the $i$-th step we replace $z_i$ by a value drawn from the distribution $p(z_i|{\bf z_{\setminus i}})$, where $z_i$ denotes the $i$-th component of ${\bf z}$, 
+with a value drawn from the conditional distribution of that variable conditioned on the values of the remaining variables. In the $i$-th step we replace $z_i$ with a value drawn from the distribution $p(z_i|{\bf z_{\setminus i}})$, where $z_i$ denotes the $i$-th component of ${\bf z}$, 
 and ${\bf z_{\setminus i}}$ denotes $z_1,\cdots,z_M$ but with $z_i$ omitted. This procedure is repeated either by cycling through the variables
-in some particular order or by choosing the variable to be updated at each step at random from some distribution. In traditional NLP problems, the
-hidden states ${\bf z}$ are usually structured as a sequence, a tree or a directed graph which usually provides explict order
-for traversal and therefore for Gibbs update.
+in some particular order or by choosing the variable to be updated at each step at random from some distribution. Algorithm~\ref{alg:gibbs} shows the iterative procedure of Gibbs sampling. In traditional NLP problems, the
+states ${\bf z}$ are usually structured as a sequence, a tree or a directed graph which usually renders explict order
+of traversal and therefore provides the order of Gibbs update.
 \begin{algorithm}[t]
 \small
 \caption{Gibbs Sampling}
@@ -78,6 +102,45 @@ for traversal and therefore for Gibbs update.
 \end{algorithmic}
 \label{alg:gibbs}
 \end{algorithm}
+For Gibbs sampling, the distribution $p({\bf z})$ is stationary in each step of the Gibbs sampling and in the whole Markov chain. This follows from the fact that when we sample from $p(z_i|{\bf z_{\setminus i}})$, the marginal distribution $p({\bf z_{\setminus i}})$ remains unchanged and each step in Gibbs sampling samples from the exact conditional distribution $p(z_i|{\bf z_{\setminus i}})$. Therefore, the joint distribution is a stationary distribution.
+
+
+Another property for Gibbs sampling to sample from the desired distribution is that it should be ergodic. A sufficient condition for ergodicity is that none of the conditional distributions be anywhere zero. If this condition is satisfied, then any state in ${\bf z}$ space can be reached from any other point in a finite number of steps involving one update of each of the component variables. 
+On the other hand, If this condition is not satisfied, then some of the conditional
+distributions have zeros, then ergodicity needs to be proven explicitly before applying the Gibbs sampling algorithm.
+
+
+Actually, we can see Gibbs sampling as a special case of Metropolis-Hastings algorithm. Assume a Metropolis-Hastings algorithm which samples variable $z_i$ while keeping
+the other variables fixed at each step. 
+The proposal distribution is $q({\bf z^*}|{\bf z})=p(z_i^*|{\bf z_{\setminus i}})$. We have ${\bf z^*}_{\setminus i} = {\bf z}_{\setminus i}$ because 
+${\bf z}$ and ${\bf z^*}$ only differs in the $i$-th variable. Therefore, the acceptance rate $A({\bf z^*}, {\bf z})$ for Metropolis-Hastings is given by
+$$A({\bf z^*}, {\bf z}) = \frac{p({\bf z^*})q({\bf z}|{\bf z^*})}{p({\bf z})q({\bf z^*}|{\bf z})} = \frac{p(z_i^* |{\bf z^*}_{\setminus i})p({\bf z^*}_{\setminus i})p(z_i |{\bf z^*}_{\setminus i})}{p(z_i |{\bf z}_{\setminus i})p({\bf z}_{\setminus i})p(z_i^* |{\bf z}_{\setminus i})}=1$$
+Therefore, Gibbs sampling can be seen as a special case of Metropolis-Hastings algorithm with acceptance 1.
+\section{MCMC algorithms for NLP applications}
+In previous works, sampling methods have been used in various NLP applications such as POS tagging~\cite{finkel2005incorporating}, topic modeling~\cite{wallach2006topic,steyvers2007probabilistic}, grammar induction~\cite{cohn-2009-inducing,PostGildea-acl09} and machine translation~\cite{denero2008sampling}. 
+Usually, solving these problems either involves a joint distribution over a large number of variables or the desired distribution
+or we need to compute some expectation terms which involves suming over a large vocabulary.
+
+
+For the former case, usually what we are interested is simply one assignment to these variables which are according to
+the joint distribution. And a lot of NLP problems can be formalized as some structured learning problems where the data can
+be organized as a sequence, tree or directed graph structure.
+In such cases, we can use Gibbs sampling or its variations to sample one variable at a time, following the traversal order of each structure.
+Nonparametric Bayesian modeling based on some common nonparametric prior, such as Dirichlet Process or Pitman-Yor Process and its hierarchical generalizations, 
+are usually used to counter the problem of overfitting on small training samples.
+One big advantage of using nonparametric Bayesian methods is that it is convenient to choose the prior to be conjugate to the model
+distribution and the resulting posterior distribution is of the same family as the prior and thus have a closed-form solution.
+
+
+For the latter case, it is usually computational hard to enumerate all possible terms in the summation. One solution is to sample a few terms according to their probability distribution and use these samples to approximate the sum. 
+One widely used discrimitive learning model, Conditional Random Fields (CRF), can be solved using this technique. When using CRF or its latent variations, the 
+gradient of the log likelihood function usually involves some expectation:
+$$\frac{\partial{L}}{\partial{{\bf w}}}= \Phi(X, Y) - \mathbb{E}_{P(Y|X)} \left[\Phi(X,Y)\right]$$
+$$\frac{\partial{L}}{\partial{{\bf w}}}= \mathbb{E}_{P(Z|X, Y)}\left[\Phi(X, Y, Z)\right] - \mathbb{E}_{P(Y, Z|X)} \left[\Phi(X,Y,Z)\right]$$
+The first equation is the gradient function for CRF and the second is the gradient function for latent CRF. When computing the expectation term, we can approximate it with a few samples. One way to
+sample is again to use Gibbs sampling to sample one variable at a time to construct samples of $Y$ or $(Y, Z)$. Another solution is to
+use Metropolis-Hastings algorithm to sample $Y$ according to $P(Y)$ and sample $(Y, Z)$ according to $P(Y, Z)$. When using the Metropolis-Hastings algorithm, we don't have to compute the normalization constant, which is usually the biggest overhead of such problems.
 \section{Conclusion}
 In this chapter, I have gone through some properties of MCMC algorithms that enable the Markov chain to converge to the desired distribution after
-finite number of steps. Two widely used MCMC algorithms, Metropolis-Hastings and Gibbs Sampling algorithms, provide simple but power tools to sample from intractable probability distributions.
+finite number of steps. I have also introduced two widely used MCMC algorithms, Metropolis-Hastings and Gibbs Sampling algorithms which provide simple but power tools to sample from intractable probability distributions and approximate expectations.
+MCMC algorithms also have great potentials in solving structured learning problems which are prevalent in NLP applications.

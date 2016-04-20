@@ -50,8 +50,8 @@ Markov Chain Monte Carlo (MCMC) methods are a class of sampling algorithms which
 MCMC algorithms are widely used for calculating numerical approximations in spaces of high dimensionality, for example in Bayesian statistics, computational physics, computational biology and natural language processing (NLP).
 
 
-In this proposal, we explore some applications of MCMC algorithms to various NLP problems. First we apply MCMC algorithms to sample synchronous grammar rules, with applications of phrase-based machine translation and semantic parsing. We define a distribution over derivation tree which represents sequence of synchronous grammar rules applied to derive a language pair. We also propose a joint model which uses MCMC algorithms to sample phrases in a sentence and uses phrase-level
-skip-gram model to learn distributed representation for each phrase. Finally, we apply MCMC algorithms to learning translation models for decipherment-based machine translation where only monolingual datasets for each language are available.
+In this proposal, we explore some applications of MCMC algorithms to various NLP problems. First we apply MCMC algorithms to sample synchronous grammar rules, with applications of phrase-based machine translation and semantic parsing. We define a distribution over derivation trees which represent a sequence of synchronous grammar rules applied to derive a language pair. We also propose a joint model which uses MCMC algorithms to sample phrases in a sentence and uses phrase-level
+skip-gram model to learn a distributed representation for each phrase. Finally, we apply MCMC algorithms to learning translation models for decipherment-based machine translation where only monolingual datasets for each language are available.
 \end{abstract}
 
 \tableofcontents
@@ -83,20 +83,20 @@ MCMC algorithms have also been widely used in NLP such as word segmentation, gra
 \input{chap-amr}
 \break
 
-\chapter{Decipherment-based machine translation}
-\label{chap:decipher}
-\input{chap-decipher}
-\break
-
-\chapter{Distributed representation learning}
-\label{chap:embedding}
-\input{chap-embedding}
-\break
-
-\chapter{Neural machine translation}
-\label{chap:nmt}
-\input{chap-nmt}
-\break
+%\chapter{Decipherment-based machine translation}
+%\label{chap:decipher}
+%\input{chap-decipher}
+%\break
+%
+%\chapter{Distributed representation learning}
+%\label{chap:embedding}
+%\input{chap-embedding}
+%\break
+%
+%\chapter{Neural machine translation}
+%\label{chap:nmt}
+%\input{chap-nmt}
+%\break
 \chapter{Conclusion}
 \label{chap:conclusion}
 In this paper, I have proposed various applications of MCMC algorithms.

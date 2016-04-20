@@ -289,5 +289,29 @@ $$\frac{\partial L}{\partial w} = E_{e_1e_2|f_1f_2}[\Phi(f_1f_2,e_1e_2)] - E_{f_
 One problem with the previous model is that it does model reordering, which is a common phenomenon for machine translation. To model reordering, we additionally add the reordering term.
 $$\frac{\partial L}{\partial w} = E_{e_1e_2, I|f_1f_2}[\Phi(f_1f_2,e_1e_2, I)] - E_{f_1f_2,e_1e_2, I}[\Phi(f_1f_2,e_1e_2,I)]$$
 \section{Modeling sentence}
-In the previous few sections we are modeling 
+\subsection{Monotonic and one-to-one translation model}
+In the previous few sections we are modeling bigrams on the source side, we can also model the probability distribution of the whole sentence:
+\begin{equation}
+p(f_1^N, e_1^N) = \frac{1}{Z_{\mathbf{w}}}  [e^{\mathbf{w}^T\mathbf{\Phi}(f_1^N, e_1^N)}  \prod_{n=1}^N p(e_ne_{n-1})]
+\end{equation}
+$\mathbf{\Phi}(f_1^N, e_1^N)$ Accordingly, the gradient of the log probability of $p(f_1^N)$ involves two expected feature vectors:
+\begin{equation}
+\frac{\partial L} { \partial \mathbf{w}} = \mathbb{E}_{e_1^N|f_1^N} \left[ \mathbf{\Phi}(f_1^N, e_1^N) \right] - 
+   \mathbb{E}_{f_1^N,e_1^N} \left[ \mathbf{\Phi}(f_1^N, e_1^N) \right]=  \mathbb{E}^{Forced} - \mathbb{E}^{Full}
+\end{equation}
+
+
+Again, we can approximate the $\mathbb{E}^{Forced}$ using Gibbs sampling. Each time we sample one target word $e_i$ from left
+to right while keeping the other target words fixed. Drawing each sample requires $O(V)$ operations.
+We can also use IMH sampling to approximate $p(e_1^N|f_1^N)$. We can use a proposal distribution:
+$$p(e_1^N|f_1^N) = \prod_{n=1}^{N} q_u (e_n|f_n)$$
+where $q_u(e|f)$ is the same back-off probability defined in the previous sections.
+
+
+As for the $\mathbb{E}^{Full}$, we can also use Gibbs sampling where we first sample $n$ samples of $e_1^N$ according a bigram language model and then sample $f_1^N$ by sampling one word at a time according to the posterior probability. We can also use contrastive divergence to approximate $p(e_1^N, f_1^N)$. We sample $e_1^N$ according to $p(e_1^N|f_1^N)$ using IMH sampling. Then sample a reconstructed $f_1^N$ according to $p(f_1^N| e_1^N)$, again via IMH sampling.
+\subsection{Dealing with other possible alignments}
+In the previous sections we have assumed the alignment between languages to be monotonic and one-to-one. However, this is assumption is usually too strong for
+most different languages. It would be interesting to adapt our model to incorporate language differences such as reordering and fertility.
+\section{Future schedule}
+
 \section{Conclusion}
