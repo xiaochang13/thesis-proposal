@@ -227,12 +227,11 @@ split rule types that we get when we set the cut to 1 as $r_2, r_3$. We sample t
 current node according to the posterior probability:
 \begin{equation}
 \label{eq:cut}
-\resizebox{.88\hsize}{!}{$\displaystyle
 P(z_i = z| N) = 
 \begin{cases} 
 \frac{ P (r_1| N) }{P (r_1|N) + P (r_2| N) P (r_3| N') } &\mbox{if } z = 0 \\ 
 \frac{ P (r_2| N) P (r_3| N') }{P (r_1| N)+ P (r_2| N) P (r_3| N') } &\mbox{otherwise}
-\end{cases}$}
+\end{cases}
 \end{equation}
 where the posterior probability $P(r_i|N)$ is according to a DP, 
 and $N, N'$ are tables of 
@@ -244,9 +243,7 @@ As for edge variables $e_i$, we refer to the set of composed rules turned on bel
 composed rule fragments having $n$ as an internal or root node as $\{r_1,\ldots,r_m\}$. We have the 
 following posterior probability over the edge variable $e_i$:
 \begin{equation}
-\resizebox{.88\hsize}{!}{$\displaystyle
 P(e_i = e| N) \propto \prod_{i=1}^m P(r_i| N^{i-1}) \prod_{v \in \tau(e)\cap \mbox{in}(n)} \mbox{deg}(v)
-$}
 \end{equation}
 where $\mbox{deg}(v)$ is the number of incoming edges for node $v$, 
 $\mbox{in}(n)$ is the set of nodes 
@@ -374,7 +371,19 @@ $${\bf w} \leftarrow {\bf w} + \triangle \Phi(x, d_{(ij)^*}^{+}, d_{(ij)^*}^{-},
 It is well motivated to use dependency tree information because of dependency tree and AMR graphs are linguistically similar to each other.
 As we can also use the left-to-right order of the dependency tree, therefore, instead of extracting a synchronous grammar for sentence-AMR pairs, we can
 extract a synchronous grammar for dependency-AMR pairs.
-In this synchronous grammar, the dependency side would be a subtree instead of a span. Such kind of grammar would also provide more useful features during the decoding procedure.
+In this synchronous grammar, the dependency side would be a subtree instead of a span. Such kind of grammar would also provide more useful global features during the decoding procedure.
+
+\subsection{Other possible directions}
+Using a graph-grammar-based approach for semantic parsing is very preliminary work. One problem we've encountered is the maximum degrees for some concept nodes
+can be really large. For example, the number of \textit{:op}s for concept \textit{a/and} sometimes can get as large as 10. Such large number of degrees at each node can
+result in huge computational cost and create serious sparsity issue. It would be useful to use existing binarization techniques for graph grammars and reduce the maximum degrees
+to some small number. Another observation is that the highly branched concept nodes are usually among a limited set of concepts and have certain patterns on the sentence side. Therefore, it would also be helpful to
+handle these cases separately by extracting separate rules and trigger these rules only at certain scenarios.
+
+
+Another possible direction is to do symbol refinement with more detailed categories. For example, what kind of POS tags or roles are expected to be filled in at each
+boundary node by explicitly refine the edge nonterminal with that specific type. This refinement can also be combined with a backoff technique and we can roll back
+to non-refined rules when the deduction can not move on with the refined rules.
 \section{Schedule}
 I will start this project from 2016 Fall. AMR graph categorization should be done during the first month. I will also start implementing forced decoding for AMR parsing during the same time.
 The implementation should be done before November. The target of this project is NAACL 2017. Tuning the performance should be done before the deadline.

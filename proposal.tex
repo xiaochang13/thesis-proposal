@@ -60,17 +60,6 @@ skip-gram model to learn a distributed representation for each phrase. Finally, 
 
 \chapter{Introduction}
 \input{chap-intro}
-For a lot of probabilistic models for NLP applications, doing exact inference is often intractable. Therefore, approximation methods have to be used to overcome the
-complexity issue. Sampling methods, or known as Monte Carlo methods, are widely used to do approximate inference. The basic idea is to use a certain number of
-samples from the desired distribution to approximate the exact inference.
-
-
-Some widely used sampling methods, such as rejection sampling and importance sampling, suffer from severe limitations of high dimensional spaces. Markov Chain Monte Carlo (MCMC)
-algorithms, on the other hand, allows for sampling from a large class of distributions and scales well to high dimensional spaces. MCMC methods have their origins in physics~\cite{metropolis1949monte} and later start to have
-their uses in other fields of statistics.
-
-
-MCMC algorithms have also been widely used in NLP such as word segmentation, grammar induction et al. One widely used 
 \break
 
 \chapter{MCMC algorithms}
@@ -78,21 +67,21 @@ MCMC algorithms have also been widely used in NLP such as word segmentation, gra
 \input{chap-MCMC}
 \break
 
-\chapter{AMR parsing}
-\label{chap:amr}
-\input{chap-amr}
-\break
+%\chapter{AMR parsing}
+%\label{chap:amr}
+%\input{chap-amr}
+%\break
 
 %\chapter{Decipherment-based machine translation}
 %\label{chap:decipher}
 %\input{chap-decipher}
 %\break
-%
-%\chapter{Distributed representation learning}
-%\label{chap:embedding}
-%\input{chap-embedding}
-%\break
-%
+
+\chapter{Distributed representation learning}
+\label{chap:embedding}
+\input{chap-embedding}
+\break
+
 %\chapter{Neural machine translation}
 %\label{chap:nmt}
 %\input{chap-nmt}

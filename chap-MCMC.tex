@@ -133,7 +133,7 @@ distribution and the resulting posterior distribution is of the same family as t
 
 
 For the latter case, it is usually computational hard to enumerate all possible terms in the summation. One solution is to sample a few terms according to their probability distribution and use these samples to approximate the sum. 
-One widely used discrimitive learning model, Conditional Random Fields (CRF), can be solved using this technique. When using CRF or its latent variations, the 
+One widely used discrimitive learning model, Conditional Random Fields (CRF) or other log linear models, can be solved using this technique. When using CRF or its latent variations, the 
 gradient of the log likelihood function usually involves some expectation:
 $$\frac{\partial{L}}{\partial{{\bf w}}}= \Phi(X, Y) - \mathbb{E}_{P(Y|X)} \left[\Phi(X,Y)\right]$$
 $$\frac{\partial{L}}{\partial{{\bf w}}}= \mathbb{E}_{P(Z|X, Y)}\left[\Phi(X, Y, Z)\right] - \mathbb{E}_{P(Y, Z|X)} \left[\Phi(X,Y,Z)\right]$$
