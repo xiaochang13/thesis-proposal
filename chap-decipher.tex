@@ -1,300 +1,227 @@
-This chapter introduces MCMC applications to decipherment-based machine translation.
-Orthographic similarities across languages provide a strong signal for probabilistic decipherment, especially for closely related language pairs.
-The existing decipherment models, however, are not well-suited for exploiting these orthographic similarities.
-We propose a log-linear model with latent variables that incorporates orthographic similarity features. 
-Maximum likelihood training is computationally expensive for the proposed log-linear model. 
-To address this challenge, we perform approximate inference via MCMC sampling and contrastive divergence. 
-Our results show that the proposed log-linear model with contrastive divergence scales to large vocabularies and outperforms the existing generative decipherment models by exploiting the orthographic features.
+%In this chapter, we introduce MCMC applications to decipherment-based machine translation.
+Orthographic similarities between languages can provide very useful clues for probabilistic decipherment, especially for language pairs that are similar.
+Log-linear models with latent variables are capable of incorporating such orthographic similarity features. 
+However, log-linear models suffer from the expensive computational cost during training. 
+One way to address the complexity issue is to do approximate inference via MCMC sampling. 
+In this chapter, we first review the MCMC sampling based decipherment algorithms by~\namecite{DBLP:journals/corr/NaimG15}. Then we present some extensions from this work
+which deal with certain limitations of the existing model.
 \section{Introduction}
-Word-level translation models are typically learned by applying statistical word alignment algorithms on large bilingual parallel corpora. 
-However, building a parallel corpus is expensive, and data is limited or even unavailable for many language pairs. 
-On the other hand, large monolingual corpora can be easily downloaded from the internet for most languages. 
-Decipherment algorithms exploit such monolingual corpora in order to learn translation model parameters, when parallel data is limited or unavailable. 
-%
+Statistical machine translation models are usually learned from large corpora of bilingual data.
+However, building a large bilingual dataset is very expensive and for a lot of language pairs no bilingual corpus is available.
+Monolingual datasets, on the other hand, are readily available from a lot of sources for almost every language.
+Machine translation models learned from such monolingual datasets, with limited or no parallel data available, have been developed to deal with such kind of scenarios. The basic intuition is 
+to view one language as the cipher from another language and we want decipher the text to get the translation to that language. Such kind of translation models are called decipherment models.
 
-Existing decipherment methods are predominantly based on probabilistic generative models. 
-These models exploit the statistical similarities between the $n$-gram frequencies in the source and the target language, and rely on the Expectation Maximization (EM) algorithm or its faster approximations.
-These existing models, however, do not allow incorporating linguistically motivated features. 
-Previous research has shown the effectiveness of incorporating linguistically motivated features for many different unsupervised learning tasks, such as: unsupervised part-of-speech induction, word alignment, and grammar induction. 
-In this paper, we present a feature-rich log-linear model for probabilistic decipherment. 
 
-Words in different languages are often derived from the same source, or borrowed from other languages with minor variations, resulting in substantial phonetic and orthographic similarities.
-As a result, orthographic features provide crucial information for determining word-level translations for closely related language pairs.
-proposed a generative model for inducing a bilingual lexicon from monolingual text by exploiting orthographic and contextual similarities among the words in two different languages. 
-The model proposed by Haghighi et al.\ learns a one-to-one mapping between the words in two languages by analyzing type-level features only, while ignoring the token-level $n$-gram frequencies. 
-We propose a decipherment model, that unifies the type-level feature-based approach of Haghighi et al.~with the token-level EM based approaches.
+Most previous methods focus on probabilistic generative models for decipherment. EM algorithm or its variations is used to learn
+the statistical similarities between language pairs. However, it is difficult for these models to incorporate linguistic features which are
+well motivated, while these features have been shown to be effective in a lot of unsupervised NLP tasks.
+ 
 
-One of the key challenges with the proposed latent variable log-linear models is the high computational complexity of training, as it requires ``normalizing globally'' via summing over all possible observations and latent variables. 
-We perform approximate inference using Markov Chain Monte Carlo (MCMC) sampling for scalable training of the log-linear decipherment models. 
-The main contributions of this paper are:
-\begin{itemize}
-\item We propose a feature-based decipherment model that combines both type-level orthographic features and token-level distributional similarities. Our proposed model outperforms the existing EM-based decipherment models.
-\item We apply three different MCMC sampling strategies for scalable training and compare them in terms of running time and accuracy. 
-Our results show that Contrastive Divergence based MCMC sampling can dramatically improve the speed of the training, while achieving comparable accuracy.
-\end{itemize}
-\section{Problem Formulation}
-%%%%%%%%%%%%%%%%
-Given a source text $\mathcal{F}$ and an independent target corpus $\mathcal{E}$, our goal is to decipher the source text $\mathcal{F}$ by learning the mapping between the words in the source and the target language. 
-Although the sentences in the source and target corpus are independent of each other, there exist distributional and lexical similarities among the words of the two languages. 
-We aim to automatically learn the translation probabilities $p(f|e)$ by exploiting the similarities between the bigrams in $\mathcal{F}$ and $\mathcal{E}$.
+\namecite{DBLP:journals/corr/NaimG15} have used a log-linear model with latent variables for probabilistic decipherment.
+They have incorporated orthographic features in their discriminative model and these features are shown to be effective to improve the results.
+To overcome the challenges of computational complexity of training, they have used MCMC algorithms to approximate the inference, which dramatically speed up the training procedure.
 
-As a simplification step, we break down the sentences in the source and target corpus as a collection of bigrams. 
-Let $\mathcal{F}$ contain a collection of source bigrams $f_1 f_2$, and $\mathcal{E}$ contain a collection of target bigrams $e_1 e_2$. 
-Let the source and target vocabulary be $V_F$ and $V_E$ respectively. 
-Let $N_F$ and $N_E$ be the number of unique bigrams in $\mathcal{F}$ and $\mathcal{E}$ respectively.
-We assume that the corpus $\mathcal{F}$ is an encrypted version of a plaintext in the target language.
-Each source word $f \in V_F$ is obtained by substituting one of the words $e \in V_E$ in the plaintext. 
-However, the mappings between the words in the two languages are unknown, and are learned as latent variables.
-\section{Background Research}
-%%%%%%%%%%%%% NOTATION TABLE %%%%%%%%%%%
-\begin{table}
-\footnotesize
-\centering
-\begin{tabular}{ | l | l | }
-  \hline 
-         {Symbol}  & { Meaning} \\  \hline  \hline
-        $N_F$  & Number of unique source bigrams \\ \hline
-        $N_E$  & Number of unique target bigrams \\ \hline
-        	$V_F$ &   Source Vocabulary     \\ \hline 
-	$V_E$  &   Target Vocabulary    \\ \hline 
-        $V$  & $\max(|V_F|,|V_E|)$  \\ \hline
-        $n$ & Number of samples \\ \hline
-        $K$ & Beam size for precomputed lists \\ \hline
-        $\phi$ & Unigram level feature function \\ \hline
-        $\mathbf{\Phi}$  & Bigram level feature function: $\mathbf{\Phi} = \phi_1 + \phi_2$ \\ \hline
-\end{tabular}
-\caption{Our notations and symbols.}
-\label{table:notation}
-\end{table}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Existing decipherment models assume that each source bigram $f_1 f_2$ in $\mathcal{F}$ is generated by first generating a target bigram $e_1 e_2$ according to the target language model, and then substituting $e_1$ and $e_2$ with $f_1$ and $f_2$ respectively. 
-The generative process is typically modeled via a Hidden Markov Model (HMM) as shown in Figure~\ref{fig:graphical}(a).
-The target bigram language model $p(e_1 e_2)$ is trained from the given monolingual target corpus $\mathcal{E}$. 
-The unknown translation probabilities $p(f|e)$ are learned by maximizing the likelihood of the observed source corpus $\mathcal{F}$:
-\begin{eqnarray}
-P(\mathcal{F} ) &=& \prod_{f_1 f_2 \in \mathcal{F}} p(f_1 f_2)  \\ 
-  &=& \prod_{f_1f_2 \in \mathcal{F}} \sum_{e_1e_2} p(e_1 e_2) p(f_1|e_1) p(f_2|e_2), \nonumber
-\end{eqnarray}
-where $e_1$ and $e_2$ are the latent variables, indicating the target words in $V_E$ corresponding to $f_1$ and $f_2$ respectively.
-The log-likelihood function with latent variables is non-convex, and several methods have been proposed for maximizing it. 
-\section{Decipherment-based machine translation}
-Our feature-based decipherment model is based on a chain structured Markov Random Field (Figure~\ref{fig:graphical}(b)), which jointly models the observed source bigrams $f_1f_2$ and corresponding latent target bigram $e_1 e_2$. 
-For each source word $f \in V_F$, we have a latent variable $e \in V_E$ indicating the corresponding target word.
-The joint probability distribution:
-\begin{multline}
-p(f_1 f_2, e_1 e_2) = \frac{1}{Z_{\mathbf{w}}}  \exp{\left[ \mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2) \right]}  \\ p(e_1e_2),
-\end{multline}
-where $\mathbf{\Phi}(f_1f_2, e_1e_2)$ is the feature function for the given source and the target bigrams, $\mathbf{w}$ is the model parameters, and $Z_{\mathbf{w}}$ is the normalization term. We assume that the bigram feature function decomposes linearly over the two unigrams:
+
+In this chapter, we first go through the MCMC sampling schedule of~\namecite{DBLP:journals/corr/NaimG15}. Then I will propose some possible extensions
+to this work that deal with existing limitations.
+
+\section{Probabilistic decipherment}
+Assume $\mathcal{F}$ and $\mathcal{E}$ are separately the source corpus and the target corpus. 
+The task of decipherment is to map the source text $\mathcal{F}$ to text in the target language by learning the mapping between the words in the source and the target language. 
+Though the source and the target corpus are independent of each other, we can learn the translation model $p(f|e)$ by using the distributional and orthographic similarities
+between the language pair.
+
+
+\namecite{DBLP:journals/corr/NaimG15} have proposed a model which breaks down the source and target corpus into a collection of bigrams.
+Now we assume $\mathcal{F}$ to be a collection of source bigrams $f_1 f_2$, and $\mathcal{E}$ to be a collection of target bigrams $e_1 e_2$. 
+The source and target vocabulary are $V_F$ and $V_E$ separately and $N_F$ and $N_E$ are the number of unique bigrams in the source and target.
+The source bigrams $\mathcal{F}$ are interpreted as an encrypted version of some target bigrams. Each word in the source vocabulary corresponds to one word
+in the target bigram and our goal is to learn the mapping between words in the language pair.
+
+
+Existing generative decipherment models assume the bigrams in $\mathcal{F}$ are generated from target bigrams and each word in the source bigram is translated from 
+a word in the target bigram:
+\begin{equation}
+P(\mathcal{F}) = \prod_{f_1 f_2 \in \mathcal{F}} p(f_1 f_2)
+ = \prod_{f_1f_2 \in \mathcal{F}} \sum_{e_1e_2} p(e_1 e_2) p(f_1|e_1) p(f_2|e_2) 
+\end{equation}
+where $f_1 f_2$ and $e_1 e_2$ are source and target bigram respectively.
+The target bigram probability $p(e_1 e_2)$ is learned from the target corpus $\mathcal{E}$. 
+Here we have assumed there is no reordering and $e_1$ and $e_2$ correspond to $f_1$ and $f_2$ separately.
+ 
+\section{Feature-based decipherment model}
+The log-linear decipherment model jointly models the observed source bigrams $f_1f_2$ and the latent target bigram $e_1 e_2$: 
+\begin{equation}
+p(f_1 f_2, e_1 e_2) = \frac{1}{Z_{\mathbf{w}}}  e^{\left[ \mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2) \right]} p(e_1e_2)
+\end{equation}
+where $\mathbf{\Phi}(f_1f_2, e_1e_2)$ is the feature function for the given source and the target bigrams, $\mathbf{w}$ is the feature weights. and 
+${Z_{\mathbf{w}}}$ is the normalization term. The bigram feature function factorizes into two unigrams:
 \begin{equation}
 \mathbf{\Phi}(f_1f_2, e_1e_2) = \phi(f_1, e_1) + \phi(f_2, e_2)
 \end{equation}
-%\begin{figure}[tb]
-%\centering
-%\includegraphics[width=0.45\textwidth]{./graphical_models.pdf}
-%\caption{The graphical models for the existing directed HMM and the proposed undirected MRF.}
-%\label{fig:graphical}
-%\end{figure}
-
+The normalization constant ${Z_{\mathbf{w}}}$ is computed as:
+\begin{equation}
+{Z_{\mathbf{w}}} = \sum_{f_1f_2}\sum_{e_1e_2} e^{\left[ \mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2) \right]} p(e_1e_2)
+\end{equation}
+And we want to maximize the joint likelihood of source bigrams:
+\begin{equation}
+p(f_1,f_2) = \sum_{e_1e_2}p(f_1f_2,e_1e_2)
+\end{equation}
 The gradient of the joint log-likelihood is:
 \begin{align*}
- \label{eq:grad}
-\frac{\partial L} { \partial \mathbf{w}} &=    \mathbb{E}_{e_1 e_2|f_1f_2} \left[ \mathbf{\Phi}(f_1 f_2, e_1 e_2) \right  ] - \\
-   &\qquad \mathbb{E}_{f_1f_2,e_1e_2} \left[ \mathbf{\Phi}(f_1 f_2, e_1 e_2) \right  ] \\
+\label{eq:grad}
+\frac{\partial L} { \partial \mathbf{w}} &=    \mathbb{E}_{e_1 e_2|f_1f_2} \left[ \mathbf{\Phi}(f_1 f_2, e_1 e_2) \right  ] -
+   \mathbb{E}_{f_1f_2,e_1e_2} \left[ \mathbf{\Phi}(f_1 f_2, e_1 e_2) \right  ] \\
 &=  \mathbb{E}^{Forced} - \mathbb{E}^{Full}
 \end{align*}
-Here, the first term is the expectation with respect to the empirical data distribution. 
-We refer to it as the ``Forced Expectation", as the source text is assumed to be given. 
-The second term is the expectation with respect to our model distribution, and referred to as ``Full Expectation".
+where $\mathbb{E}^{Forced}$ is called ``Forced Expectation", which refers to the expectation of empirical data distribution of target bigrams given source bigrams. 
+The term $\mathbb{E}^{Full}$ is called ``Full Expectation", which refers to the expectation of the joint model distribution. 
 
-\subsection{Estimating Forced Expectation ($\mathbb{E}^{Forced} $)}
-We estimate the forced expectation over latent variables using the following equation:
-\begin{multline}
-\mathbb{E}^{Forced} =  \sum_{f_1f_2 \in \mathcal{F}} \frac{1}{Z(f_1f_2)}  \sum_{e_1e_2 \in V_E^2}  \biggl [ p(e_1 e_2)\\  \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ] \mathbf{\Phi}(f_1 f_2, e_1 e_2),
-\end{multline}
-where $Z(f_1f_2)$ is the normalization term given $f_1 f_2$: 
-\begin{equation*}
-Z(f_1f_2) = \sum_{e_1e_2 \in V_E^2} p(e_1 e_2)  \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}.
-\end{equation*}
-\normalsize
-For each observed $f_1 f_2 \in \mathcal{F}$, we sum over all possible $e_1 e_2 \in V_E^2$, which requires $O(N_F V^2 )$ computation. 
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\subsection{Estimating  $\mathbb{E}_{p(f_1f_2,e_1e_2| \mathcal{E})} \left[ \mathbf{\Phi}(f_1 f_2, e_1 e_2) \right  ] $}
-\subsection{Estimating Full Expectation ($\mathbb{E}^{Full} $)}
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-For the full expectation, we assume that both the source text and latent variables are unknown.
-We estimate it by summing over all the possible source bigrams $f_1f_2$, and associated latent variables $e_1e_2$:
-\begin{multline}
-\mathbb{E}^{Full} =  \frac{1}{Z_g}   \sum_{f_1 f_2 \in V_F^2} \sum_{e_1 e_2 \in V_E^2}  \biggl [ p(e_1 e_2) \\ \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ] \mathbf{\Phi}(f_1 f_2, e_1 e_2),
-\end{multline}
-where $Z_g$ is the global normalization term:
-{\small
-\begin{equation*}
-Z_g = \sum_{f_1 f_2 \in V_F^2} \sum_{e_1e_2 \in V_E^2} p(e_1 e_2)  \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}.
-\end{equation*}
-}
-\normalsize
+
+The forced expectation is estimated using the following equation:
+\begin{equation}
+\mathbb{E}^{Forced} =  \sum_{f_1f_2 \in \mathcal{F}} \frac{1}{Z(f_1f_2)}  \sum_{e_1e_2 \in V_E^2}  \biggl [ p(e_1 e_2) e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ] \mathbf{\Phi}(f_1 f_2, e_1 e_2)
+\end{equation}
+where $Z(f_1f_2)$ is the normalization term for given $f_1 f_2$: 
+\begin{equation}
+Z(f_1f_2) = \sum_{e_1e_2 \in V_E^2} p(e_1 e_2)  e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}.
+\end{equation}
+The computational complexity for computing this term is $O(N_F V^2 )$. 
+
+
+The full expectation is estimated as follows:
+\begin{equation}
+\mathbb{E}^{Full} =  \frac{1}{Z_g}   \sum_{f_1 f_2 \in V_F^2} \sum_{e_1 e_2 \in V_E^2}  \biggl [ p(e_1 e_2) e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ] \mathbf{\Phi}(f_1 f_2, e_1 e_2),
+\end{equation}
+where $Z_g$ is the normalization term over all source and target bigrams: 
+\begin{equation}
+Z_g = \sum_{f_1 f_2 \in V_F^2} \sum_{e_1e_2 \in V_E^2} p(e_1 e_2)  e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}.
+\end{equation}
 The computational complexity is $O(V^4)$.
-Once again we approximate this expectation by using MCMC sampling. The inner-sum over all possible target bigrams $e_1 e_2$ is estimated using MCMC sampling, by summing over a small number of samples. 
-The outer sum is approximated by drawing samples for source bigrams. 
-We plan to sample the source bigrams $f_1 f_2$, one word at a time. 
-\section{MCMC Sampling for Faster Training} 
-%%%%%%%%%%%%%%
-The overall computational complexity of estimating the exact gradient is $O(N_F V^2 + V^4)$, which is infeasible even for a modest-sized vocabulary. 
-We apply several MCMC sampling methods to approximately estimate the forced and full expectations.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Gibbs Sampling}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Gibbs Sampling for Forced Expectation}
-Instead of summing over all target bigrams $e_1 e_2$, we approximate the forced expectation by taking $n$ samples of $e_1 e_2$ for each observed $f_1 f_2$, and take an average of the features for these samples. 
-For each observed $f_1 f_2$, the following steps are taken:
-\begin{itemize}
-\item Start with an initial target bigram $e_1 e_2$.
-\item Fix $e_2$ and sample $e_1^{new}$ according to the following probability distribution:
-\begin{multline*}
-P(e_1^{new}  | e_2, f_1f_2) = \frac{1}{Z_{gibbs}} \biggl [ p(e_1^{new} e_2) \\  \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1^{new} e_2)} \biggr ]
-\end{multline*}
-where $Z_{gibbs}$ is the normalization term over all possible $e_1$ in the target vocabulary.
-\item Next, fix $e_1$ and draw a new sample $e_2$ similarly according to $P(e_2^{new}  | e_1, f_1f_2)$, and continue sampling $e_1$ and $e_2$ alternately until $n$ samples are drawn.
-\end{itemize}
-Drawing each sample requires $O(V)$ operations, as we need to estimate the normalization term $Z_{gibbs}$. 
-The computational complexity of estimating the forced expectation becomes: $O(N_F V n)$, which is expensive as $V$ can be large. 
-\subsubsection{Gibbs Sampling for Full Expectation}
-To efficiently estimate the full expectation, we sample $n$ source bigrams $f_1 f_2$ from our model. The Gibbs sampling procedure is:
-\begin{itemize}
-\item Start with an initial random $f_1 f_2$.
+\section{MCMC sampling}
+As the vocabulary size of each language is usually very large, it is impractical to compute the exact expectation terms.
+\namecite{DBLP:journals/corr/NaimG15} have used different MCMC algorithms to approximate the two expectation terms.
+\subsection{Gibbs sampling}
+The first MCMC approach is to use Gibbs sampling. For the forced expectation,
+instead of summing over all target bigrams $e_1 e_2$, we can take $n$ samples of $e_1 e_2$ for each $f_1 f_2$, and take an average of the features for these samples. 
+The basic sampling procedure is: For each source bigram $f_1f_2$, we start with an initial target bigram $e_1 e_2$. We first fix $e_2$ and replace $e_1$ with $e_1^{new}$ according to the posterior distribution:
+\begin{equation}
+P(e_1^{new}  | e_2, f_1f_2) = \frac{1}{Z_{gibbs}} \biggl [ p(e_1^{new} e_2)  e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1^{new} e_2)} \biggr ]
+\end{equation}
+where $Z_{gibbs}$ is the normalization term over all possible $e_1$.
+Then we fix $e_1^{new}$ and draw a sample to replace $e_2$ with $e_2^{new}$ according to $P(e_2^{new} | e_1, f_1f_2)$, and continue sampling new $e_1$ and $e_2$ alternately until $n$ samples are drawn.
+The overall complexity for each sample is $O(V)$ and the computational complexity of estimating the forced expectation is $O(N_F V n)$, which is also expensive as $V$ can be large. 
 
-\item Fix $f_2$, and sample a new $f_1$ according to $p(f_1 | f_2)$:
-\begin{multline*}
-p(f_1|f_2) = \frac{1}{Z_{gibbs}^\prime} \sum_{e_1} \sum_{e_2} \biggl [  p(e_1 e_2) \\  \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ]
-\end{multline*}
+
+As for the full expectation, we need to sample both source and target bigrams. The Gibbs sampling procedure is: We start with a random source bigram $f_1f_2$, then we fix $f_2$ and sample a new $f_1$ according to: 
+\begin{equation}
+p(f_1|f_2) = \frac{1}{Z_{gibbs}^\prime} \sum_{e_1} \sum_{e_2} \biggl [  p(e_1 e_2) e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ]
+\end{equation}
+where
+\begin{equation}
+Z_{gibbs}^\prime = \sum_{f_1} \sum_{e_1} \sum_{e_2} \biggl [ p(e_1 e_2)  e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ]
+\end{equation}
+Then we fix $f_1$ and sample $f_2$ according to $P(f_2|f_1)$. We repeat this procedure until $n$ samples are drawn.
+The computational complexity of computing $p(f_1|f_2)$ is $O(V^3)$, which is impractical. 
+The major overhead comes from the summation over target bigrams.
+Therefore, instead of summing over all possible $e_1 e_2$, we can approximate it by sampling $n$ samples of target bigrams. 
+For each $f_1f_2$, we sample $n$ target bigrams $e_1 e_2$ according to $p(e_1 e_2)$. 
+Let $S$ be the set of the $n$ samples, then we estimate $p(f_1|f_2)$ as:
+\begin{equation}
+p(f_1|f_2) = \frac{1}{Z_{approx}} \sum_{e_1 e_2 \in S} e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}
+\end{equation}
 where 
-{\small 
-\begin{equation*}
-Z_{gibbs}^\prime = \sum_{f_1} \sum_{e_1} \sum_{e_2} \biggl [ p(e_1 e_2)  \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} \biggr ]
-\end{equation*}
-}
-\item Next fix $f_1$ and sample $f_2$ according to $P(f_2|f_1)$. Continue alternating until $n$ samples are drawn.
-\end{itemize}
-The computational complexity of exactly estimating $p(f_1|f_2)$ is $O(V^3)$, resulting in the computational complexity $O(V^3 n)$, which is infeasible. 
-However, instead of summing over all possible $e_1 e_2$, we can approximate via sampling. 
-For each $f_1f_2$, we first sample $n$ samples $e_1 e_2$ according to $p(e_1 e_2)$. 
-Let $S$ be the set of $n$ samples of target bigrams.
-Next, we approximate $p(f_1|f_2)$ as:
-\begin{equation*}
-p(f_1|f_2) = \frac{1}{Z_{approx}} \sum_{e_1 e_2 \in S} \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}
-\end{equation*}
-where {\small $Z_{approx} = \sum_{f_1} \sum_{e_1e_2 \in S} \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}$}.
-%\begin{equation*}
-%Z_{approx} = \sum_{f_1} \sum_{e_1e_2 \in S} \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)}
-%\end{equation*}
-This reduces the computational complexity to $O(Vn^2)$. 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+$$ Z_{approx} = \sum_{f_1} \sum_{e_1e_2 \in S} e^{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} $$
+And the computational complexity becomes $O(Vn^2)$. 
 \subsection{Independent Metropolis Hastings (IMH)}
-The Gibbs sampling for our log-linear model is slow as it requires normalizing the sampling probabilities over the entire vocabulary. 
-To address this challenge, we apply Independent Metropolis Hastings (IMH) sampling, which relies on a proposal distribution and does not require normalization. 
-However, finding an appropriate proposal distribution can sometimes be challenging, as it needs to be close to the true distribution for faster mixing and must be easy to sample from.
+The Gibbs sampling is slow because it needs to compute the normalization constant, which involves a summation over the whole vocabulary. 
+Metropolis-Hastings algorithm, on the other hand, relies on a proposal distribution and does not require computing the normalization constant. \namecite{DBLP:journals/corr/NaimG15}
+have used Independent Metropolis Hastings algorithm to estimate the forced expectation.
 
-For the forced expectation, one possibility is to use the bigram language model $p(e_1 e_2)$ as a proposal distribution.
-However, the bigram language model did not work well in practice. 
-Since $p(e_1 e_2)$ does not depend on $f_1 f_2$, it resulted in slow mixing and exhibited a bias towards highly frequent target words.
 
-Instead, we chose an approximation of $p(e_1 e_2|f_1 f_2) $ as our proposal distribution. 
-To simplify sampling, we assume $e_1$ and $e_2$ to be independent of each other for any given $f_1 f_2$.
-Therefore, the proposal distribution $q(e_1 e_2 | f_1 f_2) = q_u(e_1|f_1) q_u(e_2|f_2)$, where $q_u(e|f)$ is a probability distribution over target unigrams for a given source unigram.
-We define $q_u(e|f)$ as follows:
-\begin{equation*}
+The major challenge for using Metropolis-Hastings algorithm is to find a good proposal distribution.
+We can assume $e_1$ and $e_2$ to be independent of each other for any given $f_1 f_2$.
+and use the proposal distribution $q(e_1 e_2 | f_1 f_2) = q_u(e_1|f_1) q_u(e_2|f_2)$, where $q_u(e|f)$ is a probability distribution over target unigrams for a given source unigram.
+And $q_u(e|f)$ is defined as:
+\begin{equation}
 q_u( e | f) = (1-p_b) q_s(f | e) + p_b \frac{1}{V}
-\end{equation*}
-where $p_b$ is a small back-off probability with which we fall back to the uniform distribution over target unigrams. The other term $q_s(e|f)$ is a distribution over the target words $e$ for which $(f,e) \in \mathbf{w}$:
+\end{equation}
+where $p_b$ is a back-off probability with a fall back to the uniform distribution over target unigrams. The term $q_s(e|f)$ is a distribution over the target words $e$ for which $(f,e) \in \mathbf{w}$:
 \[
     q_s(e|f)= 
 \begin{cases}
-     \frac{1}{Z_{imh}} \exp{\mathbf{w}^T \phi(f, e)} ,& \text{if } (f,e) \in \mathbf{w}\\
+     \frac{1}{Z_{imh}} e^{\mathbf{w}^T \phi(f, e)} ,& \text{if } (f,e) \in \mathbf{w}\\
     0,              & \text{otherwise}.
 \end{cases}
 \]
-Here, $Z_{imh}$ is a normalization term over all the $e$ such that $(f,e) \in \mathbf{w}$.
-The weight vector $\mathbf{w}$ is sparse, as only a small number of translation features $(f,e)$ (Section~\ref{sec:feature}) are observed during sampling. 
-Furthermore, we update $q_s$ only once every 5 iterations of gradient descent.
+where $Z_{imh}$ is a normalization term over all the $e$ such that $(f,e) \in \mathbf{w}$.
 
-The actual target distribution is: 
+
+The IMH sampling procedure proceeds as follows: We start with an initial English bigram: $\langle e_1 e_2\rangle^{0}$. Assume the current sample to be $\langle e_1 e_2 \rangle^{i}$. We sample ${\langle e_1 e_2 \rangle}^{i+1}$ from the proposal distribution $q(e_1 e_2|f_1 f_2)$ and accept the sample with probability:
 \begin{equation}
-p (e_1e_2|f_1f_2) \propto p(e_1 e_2) \exp{\mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2)} 
+P_a = \frac{p( \langle e_1 e_2 \rangle^{i+1}|f_1f_2)} {p(\langle e_1 e_2 \rangle^{i}|f_1f_2) } \frac{q(\langle e_1e_2 \rangle^{i}|f_1f_2)}{q(\langle e_1e_2 \rangle^{i+1}|f_1f_2)}
+\end{equation}
+The overall complexity for computing the forced expectation becomes $O(N_F n)$, which is significantly faster than the Gibbs sampling schedule.
+
+
+IMH can not estimate the full expectation for the difficulty of find a good proposal distribution. So \namecite{DBLP:journals/corr/NaimG15} have used contrastive divergence combined with IMH to estimate this term.
+
+
+The contrastive divergence schedule works as follows: for each source bigram $f_1 f_2 \in \mathcal{F}$, we sample a target bigram $e_1 e_2$ according to the distribution $p(e_1 e_2| f_1 f_2)$ using IMH. Then we sample a reconstructed source bigram $ \langle f_1 f_2 \rangle^{recon}$ by sampling from the distribution $p(f_1 f_2 | e_1 e_2)$, again via IMH. 
+We repeat this procedure until $n$ samples of $e_1 e_2$ and corresponding $ \langle f_1 f_2  \rangle^{recon}$ are drawn. 
+Then the gradient is estimated as:
+\begin{equation}
+\frac{\partial L} { \partial \mathbf{w}} \approx  \mathbf{\Phi}(\langle f_1 f_2\rangle^{data}, e_1 e_2) -   \mathbf{\Phi}(\langle f_1 f_2\rangle ^{recon}, e_1 e_2)
 \end{equation}
 
 
-For each $f_1 f_2  \in \mathcal{F}$, we take the following steps during sampling:
-\begin{itemize}
-\item Start with an initial English bigram: $\langle e_1 e_2\rangle^{0}$
-\item Let the current sample be $\langle e_1 e_2 \rangle^{i}$. Next, sample ${\langle e_1 e_2 \rangle}^{i+1}$ from the proposal distribution $q(e_1 e_2|f_1 f_2)$.
-\item Accept the new sample with the probability:
-\begin{equation*}
-P_a = \frac{p( \langle e_1 e_2 \rangle^{i+1}|f_1f_2)} {p(\langle e_1 e_2 \rangle^{i}|f_1f_2) } \frac{q(\langle e_1e_2 \rangle^{i}|f_1f_2)}{q(\langle e_1e_2 \rangle^{i+1}|f_1f_2)}
-\end{equation*}
-\end {itemize}
-The IMH sampling reduces the complexity of the forced expectation estimation to $O(N_F n)$~\footnote{Ignoring the cost of estimating $q_s(e|f)$, which occurs only once every 5 iterations.}, which is significantly less than the complexity of $O(N_F V n )$ in the case of Gibbs sampling.
-However, we could not apply IMH while estimating the full expectation, as finding a suitable proposal distribution is more complicated. Therefore, the overall complexity remains: $O(N_F n + Vn^2)$.
+The features used in the log-linear model include: translation features of $(f, e)$ pairs observed during the sampling procedure; orthographic features based on normalized edit-distance, with a threshold of 0.3
 
-\subsection{Contrastive Divergence Based Sampling}
-The main reason for the slow training of the proposed log-linear MRF model is the high computational cost of estimating the partition function $Z_g$ when estimating the full expectation. 
-A similar problem arises while training deep neural networks. 
-An increasingly popular technique to address this issue is to perform Contrastive Divergence, which allows us to avoid estimating the partition function.
+\section{Proposed methods}
+\subsection{Adding the reordering model}
+One problem with the introduced model is that it does model reordering, which is a very common phenomenon for machine translation. 
+Again we consider translation of source bigrams.
+To model reordering, we additionally include a reordering term:
+\begin{equation}
+p(f_1 f_2, e_1 e_2, I) = \frac{1}{Z_{\mathbf{w}}}  e^{\left[ \mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2, I) \right]} p(e_1e_2)
+\end{equation}
+where $I$ is a binary flag representing whether $e_1e_2$ is a reordered translation
+of $f_1f_2$. In this way, we can factorize $\Phi(f_1f_2, e_1e_2, I)$ into different unigram translation pairs according to this flag:
+\[
+    \Phi(f_1f_2, e_1e_2, I) = 
+\begin{cases}
+     \phi(f_1, e_1)+\phi(f_2,e_2) ,& \text{if } I = 0\\
+    \phi(f_1, e_2)+\phi(f_2, e_1)              & \text{otherwise}.
+\end{cases}
+\]
+and the normalization constant now becomes:
+\begin{equation}
+{Z_{\mathbf{w}}} = \sum_{f_1f_2}\sum_{e_1e_2}\sum_I e^{\left[ \mathbf{w}^T\mathbf{\Phi}(f_1f_2, e_1e_2, I) \right]} p(e_1e_2)
+\end{equation}
+The gradient of the joint likelihood of a source bigram is:
+\begin{equation}
+\frac{\partial L}{\partial \mathbf{w}} = \mathbb{E}_{e_1e_2, I|f_1f_2}[\Phi(f_1f_2,e_1e_2, I)] - \mathbb{E}_{f_1f_2,e_1e_2, I}[\Phi(f_1f_2,e_1e_2,I)]
+\end{equation}
+Again we can use Gibbs sampling and IMH to estimate the two expectation terms. The only difference is that
+we need to additionally sample the reordering term $I$.
+\subsection{Modeling sentence}
+In the previous sections, we have all considered the source corpus as a collection of
+bigrams. However, the actual dataset are usually sentence after sentence and considering bigrams only would throw away the 
+global sequence information. So we propose a model to formalize the probability over the whole sequence.
 
-For each observed source bigram $f_1 f_2 \in \mathcal{F}$, contrastive divergence sampling works as follows:
-\begin{itemize}
-\item Sample a target bigram $e_1 e_2$ according to the distribution $p(e_1 e_2| f_1 f_2)$. We perform this step using Independent Metropolis Hastings, as discussed in the previous section.
-\item Sample a reconstructed source bigram $ \langle f_1 f_2 \rangle^{recon}$ by sampling from the distribution $p(f_1 f_2 | e_1 e_2)$, again via Independent Metropolis Hastings. 
-\end{itemize}
-We take $n$ such samples of $e_1 e_2$ and corresponding $ \langle f_1 f_2  \rangle^{recon}$. 
-For each sample and reconstruction pair, we update the weight vector by an approximation of the gradient:
-\begin{equation*}
-\frac{\partial L} { \partial \mathbf{w}} \approx  \mathbf{\Phi}(\langle f_1 f_2\rangle^{data}, e_1 e_2) -   \mathbf{\Phi}(\langle f_1 f_2\rangle ^{recon}, e_1 e_2)
- \end{equation*}
-\begin{table}
-\footnotesize
-\begin{tabular}{ | l | l | }
-  \hline 
-         {Method}  & { Complexity} \\  \hline  \hline
-	EM &   $O(N_F V^2)$     \\ \hline 
-	Feature-HMM &   $O(N_F V^2)$     \\ \hline 
-	%EM + Slice &   $O(N_F nV)$, but often faster    \\ \hline 
-        Log-linear/MRF Exact  & $O(N_F V^2 + V^4)$   \\ \hline
-        Log-linear + Gibbs  & $O(N_F V n + V n^2)$  \\ \hline
-        Log-linear + IMH  & $O(N_F n + V n^2)$ \\ \hline
-        Log-linear + CD  & $O(N_F n)$ \\ \hline
-\end{tabular}
-\caption{The worst case computational complexities per iteration for different decipherment algorithms}
-\label{table:complexity}
-\end{table}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Feature Design}
-\label{sec:feature}
-We included the following unigram-level features:
-\begin{itemize}
-\item \emph{Translation Features:} each $(f, e)$ word pair, where $f  \in V_F $ and $e \in V_E$, is a potential feature in our model. While there are $O(V^2)$ such possible features, we only include the ones that are observed during sampling. 
-Therefore, our feature weights $\mathbf{w}$ is a sparse vector, with most of the entries zero.
-\item \emph{Orthographic Features:} 
-%we incorporated an orthographic feature based on the normalized edit-distance. 
-For a word pair $(e, f)$, the orthographic feature is triggered if the normalized edit distance is less than a threshold (set to 0.3 in our experiments).
-\item \emph{Length Difference:} Since source words and their target translations often tend to have similar lengths, we added the absolute value of their length difference as a feature. 
-\end{itemize}
-The set of features can further be extended by including context window based features and topic features.
-\section{Feature-based}
-Optimization function, joint probability:
-$$p(f_1,f_2) = \sum_{e_1e_2}p(f_1f_2,e_1e_2)$$
-The gradient of the joint log probability is:
-$$\frac{\partial L}{\partial w} = E_{e_1e_2|f_1f_2}[\Phi(f_1f_2,e_1e_2)] - E_{f_1f_2,e_1e_2}[\Phi(f_1f_2,e_1e_2)]$$
-\section{Reordering model}
-One problem with the previous model is that it does model reordering, which is a common phenomenon for machine translation. To model reordering, we additionally add the reordering term.
-$$\frac{\partial L}{\partial w} = E_{e_1e_2, I|f_1f_2}[\Phi(f_1f_2,e_1e_2, I)] - E_{f_1f_2,e_1e_2, I}[\Phi(f_1f_2,e_1e_2,I)]$$
-\section{Modeling sentence}
-\subsection{Monotonic and one-to-one translation model}
-In the previous few sections we are modeling bigrams on the source side, we can also model the probability distribution of the whole sentence:
+
+First we consider the translation model to be monotonic and one-to-one. We factorize the probability distribution of the whole sentence into translation model over unigrams
+and a target side language model:
 \begin{equation}
 p(f_1^N, e_1^N) = \frac{1}{Z_{\mathbf{w}}}  [e^{\mathbf{w}^T\mathbf{\Phi}(f_1^N, e_1^N)}  \prod_{n=1}^N p(e_ne_{n-1})]
 \end{equation}
-$\mathbf{\Phi}(f_1^N, e_1^N)$ Accordingly, the gradient of the log probability of $p(f_1^N)$ involves two expected feature vectors:
+where $\mathbf{\Phi}(f_1^N, e_1^N)$ can factorize into unigram feature functions:
+\begin{equation}
+\mathbf{\Phi}(f_1^N, e_1^N) = \sum_{i=1}^N \phi(f_i, e_i)
+\end{equation}
+Accordingly, the gradient of the log probability of $p(f_1^N)$ involves two expected feature vectors:
 \begin{equation}
 \frac{\partial L} { \partial \mathbf{w}} = \mathbb{E}_{e_1^N|f_1^N} \left[ \mathbf{\Phi}(f_1^N, e_1^N) \right] - 
    \mathbb{E}_{f_1^N,e_1^N} \left[ \mathbf{\Phi}(f_1^N, e_1^N) \right]=  \mathbb{E}^{Forced} - \mathbb{E}^{Full}
@@ -308,10 +235,34 @@ $$p(e_1^N|f_1^N) = \prod_{n=1}^{N} q_u (e_n|f_n)$$
 where $q_u(e|f)$ is the same back-off probability defined in the previous sections.
 
 
-As for the $\mathbb{E}^{Full}$, we can also use Gibbs sampling where we first sample $n$ samples of $e_1^N$ according a bigram language model and then sample $f_1^N$ by sampling one word at a time according to the posterior probability. We can also use contrastive divergence to approximate $p(e_1^N, f_1^N)$. We sample $e_1^N$ according to $p(e_1^N|f_1^N)$ using IMH sampling. Then sample a reconstructed $f_1^N$ according to $p(f_1^N| e_1^N)$, again via IMH sampling.
-\subsection{Dealing with other possible alignments}
-In the previous sections we have assumed the alignment between languages to be monotonic and one-to-one. However, this is assumption is usually too strong for
-most different languages. It would be interesting to adapt our model to incorporate language differences such as reordering and fertility.
-\section{Future schedule}
+As for the $\mathbb{E}^{Full}$, we can either use Gibbs sampling where we first sample $n$ samples of $e_1^N$ according a bigram language model and then sample $f_1^N$ by sampling one word at a time according to the posterior probability. We can also use contrastive divergence to approximate $p(e_1^N, f_1^N)$. We sample $e_1^N$ according to $p(e_1^N|f_1^N)$ using IMH sampling. Then sample a reconstructed $f_1^N$ according to $p(f_1^N| e_1^N)$, again via IMH sampling.
 
+
+Assuming monotonic and one-to-one alignment is a very strong assumption for modeling language pairs. One softer version of this model is 
+to allow translation of one source word into nothing (\textit{NULL}) or generate a target word from \textit{NULL}. We can model this by inserting
+a \textit{NULL} between every bigram in the source sentence and allow translation of
+a source word into \textit{NULL}.
+
+
+Finally, it would also be interesting to additionally model reordering and fertility in a sentence-wise decipherment model. One possible way is
+to correlate it to IBM model 3 and use sampling methods to sample additional terms.
+\subsection{Other possible directions}
+Currently the features used in the log-linear model only limit to simple word translation pair features and orthographic features, it
+would be helpful to design other features that can capture similarities between language pairs.
+For example, the distribution of word frequency can be similar between languages and the rankings or relative frequencies of the most common words
+in two languages may be used as features to show if they are close to each other. For example, we can either reward pair of source and target words if they are close in frequency rankings and 
+punish if the frequency rankings are very different.
+
+
+``Cluster" features can also provide useful dense distributional features for predicting the similarities between word pairs. We can either use traditional clustering
+techniques like Brown clustering, or we can use distributed word vector representation of words trained from monolingual dataset of each language and model the correlation between two vectors. If condition allows, we can also use POS tags as features to model similarity between language pairs.
+\section{Future schedule}
+I will start this project from 2016 Fall, in parallel with the AMR parsing project. I will first reproduce the baseline results of \namecite{DBLP:journals/corr/NaimG15}. I will test out the effect of 
+modeling reordering of bigrams and also the sentence model. I will also test the effect of new features and think about ways to model similarity using embeddings from two languages.
+The target of this project is NAACL 2017 or ACL 2017.
 \section{Conclusion}
+We have presented the applications of MCMC algorithms to probabilistic decipherment. Specifically, we have introduced a log-linear model with latent variables which
+enables incorporating orthographic features and the application of Gibbs sampling and Independent Metropolis Hastings algorithms to approximate the gradient update during training.
+We also propose some extensions to this framework by modeling reordering, insertions and deletions and the translation of the entire sentence.
+Another possible direction is to design more diverse features like frequency distribution and cluster features. It would be interesting to investigate the use of 
+distributed vector representation for two languages and model their similarities.

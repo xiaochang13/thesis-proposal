@@ -1,5 +1,5 @@
 For a lot of probabilistic models for NLP applications, doing exact inference is often intractable. Therefore, approximation methods have to be used to overcome the
-complexity issue. Sampling methods, or known as Monte Carlo methods, are widely used to do approximate inference. The basic idea is to use a certain number of
+complexity issue. Sampling methods, known as Monte Carlo methods, are widely used to do approximate inference. The basic idea is to use a certain number of
 samples from the desired distribution to approximate the exact inference.
 
 
@@ -8,10 +8,10 @@ algorithms, on the other hand, allows for sampling from a large class of distrib
 their uses in other fields of statistics.
 
 
-Most of NLP problems can be formalized as some kind of structured learning problems, either sequence, tree or graph structures.
+Most NLP problems can be formalized as some kind of structured learning problems, either sequence, tree or graph structures.
 In previous works, sampling methods have been used in various NLP applications such as POS tagging~\cite{finkel2005incorporating}, topic modeling~\cite{wallach2006topic,steyvers2007probabilistic}, grammar induction~\cite{cohn-2009-inducing,PostGildea-acl09} and machine translation~\cite{denero2008sampling}. 
-Usually, solving these problems either involves a joint distribution over a large number of variables or the desired distribution
-or we need to compute some expectation terms which involves suming over a large vocabulary.
+Usually, solving these problems either involves a joint distribution over a large number of variables for the desired distribution
+or we need to compute some expectation terms which involves summing over a large vocabulary.
 MCMC algorithms provides powerful toolsets to solve these problems with relatively small computational cost.
 
 
@@ -20,6 +20,6 @@ First we apply MCMC algorithms to sample synchronous grammar rules, with applica
 skip-gram model to learn a distributed representation for each phrase. Finally, we apply MCMC algorithms to learning translation models for decipherment-based machine translation where only monolingual datasets for each language are available.
 
 
-The rest of the paper is structured as follows. In Chapter 2, I will discuss the MCMC algorithms in general and show some widely used MCMC algorithms. In Chapter 3-5 I will separately introduce the application of MCMC algorithms to 
-AMR graph parsing, decipherment-based machine translation and distributed representation learning for phrases. At the end of each Chapter, I will also explore different techniques and directions that
-could be possible solutions or ways of improvement for each NLP task. In Chapter 6, I will conclude the proposal paper.
+The rest of the paper is structured as follows. In Chapter 2, I will discuss the MCMC algorithms in general and show some widely used MCMC algorithms. In Chapters 3-5 I will separately introduce the application of MCMC algorithms to 
+AMR graph parsing, decipherment-based machine translation and distributed representation learning for phrases. At the end of each chapter, I will also explore different techniques and directions that
+could be possible solutions or ways of improvement for each NLP task. In Chapter 6, I will conclude the proposal.
